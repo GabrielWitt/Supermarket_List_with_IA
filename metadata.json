@@ -1,0 +1,6 @@
+{
+  "name": "FreshCart",
+  "description": "A smart grocery list and AI recipe app built with a clean React Native design system, interactive simulator, and complete codebase explorer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
