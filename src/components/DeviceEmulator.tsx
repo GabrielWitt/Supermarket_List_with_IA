@@ -13,6 +13,12 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Calendar, 
+  Play,
+  Pause,
+  RotateCcw,
+  Heart,
+  Save,
+  Camera, 
   TrendingUp, 
   Sparkle, 
   Search, 
@@ -39,6 +45,14 @@ import {
   Package,
   Lightbulb
 } from "lucide-react";
+import { RecipeDetailScreen } from "./RecipeDetailScreen";
+import { EditRecipeScreen } from "./EditRecipeScreen";
+import { CookModeScreen } from "./CookModeScreen";
+import { AddRecipeScreen } from "./AddRecipeScreen";
+import { MagicInputScreen } from "./MagicInputScreen";
+import { MagicResultsScreen } from "./MagicResultsScreen";
+import { AIRecipeDetailScreen } from "./AIRecipeDetailScreen";
+import { useLanguage } from "../lib/LanguageContext";
 import { 
   auth, 
   signInWithEmailAndPassword, 
@@ -156,9 +170,19 @@ const formatFirebaseError = (err: any): string => {
 };
 
 export const DeviceEmulator: React.FC = () => {
+  const { language, setLanguage, t } = useLanguage();
   // Navigation: Home | Supermarket | Recipes | Magic Recipe | Profile | Pantry
   const [activeTab, setActiveTab] = useState<"Home" | "Supermarket" | "Pantry" | "Recipes" | "Magic" | "Profile">("Supermarket");
-  const [activeScreen, setActiveScreen] = useState<"App" | "Settings" | "Notifications" | "Login" | "Register" | "ForgotPassword" | "Suggestions">("App");
+  const [activeScreen, setActiveScreen] = useState<"App" | "Settings" | "Notifications" | "Login" | "Register" | "ForgotPassword" | "Suggestions" | "RecipeDetail" | "EditRecipe" | "CookMode" | "AddRecipe" | "MagicResults" | "AIRecipeDetail">("App");
+  const [magicInputParams, setMagicInputParams] = useState<{
+    ingredients: string[];
+    budget: string;
+    servings: string;
+    diet: string;
+    time: string;
+  } | null>(null);
+  const [selectedAIRecipeId, setSelectedAIRecipeId] = useState<string>("");
+  const [selectedAIRecipeTitle, setSelectedAIRecipeTitle] = useState<string>("");
   const [showSplash, setShowSplash] = useState(true);
   const [showAddItem, setShowAddItem] = useState(false);
 
@@ -316,6 +340,17 @@ export const DeviceEmulator: React.FC = () => {
   // Suggestions States
   const [suggestionsAddedItems, setSuggestionsAddedItems] = useState<Record<string, boolean>>({});
 
+  // Dynamic Recipe & Interactive States
+  const [recipesList, setRecipesList] = useState<Recipe[]>(POPULAR_RECIPES);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [cookModeRecipe, setCookModeRecipe] = useState<Recipe | null>(null);
+  const [cookModeCurrentStep, setCookModeCurrentStep] = useState(0);
+  const [cookModeTimerSeconds, setCookModeTimerSeconds] = useState(0);
+  const [cookModeTimerActive, setCookModeTimerActive] = useState(false);
+  const [recipeDetailTab, setRecipeDetailTab] = useState<"Ingredients" | "Steps" | "Info">("Ingredients");
+  const [servingsCount, setServingsCount] = useState(4);
+
   // AI Chef States
   const [aiRecipe, setAiRecipe] = useState<Recipe | null>(null);
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
@@ -351,6 +386,19 @@ export const DeviceEmulator: React.FC = () => {
   useEffect(() => {
     localStorage.setItem("freshcart_pantry", JSON.stringify(pantryItems));
   }, [pantryItems]);
+
+  // Cook Mode Countdown Timer Effect
+  useEffect(() => {
+    let timer: any;
+    if (cookModeTimerActive && cookModeTimerSeconds > 0) {
+      timer = setInterval(() => {
+        setCookModeTimerSeconds((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    } else if (cookModeTimerSeconds === 0) {
+      setCookModeTimerActive(false);
+    }
+    return () => clearInterval(timer);
+  }, [cookModeTimerActive, cookModeTimerSeconds]);
 
   // Business Rule: New items start with quantity = 0, price = $0.00
   const handleAddItem = (name: string, category: string) => {
@@ -515,6 +563,98 @@ export const DeviceEmulator: React.FC = () => {
     });
     setItems(currentList);
     setActiveTab("Supermarket");
+  };
+
+  // Recipe Navigation and Management Handlers
+  const handleViewRecipeDetail = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+    setRecipeDetailTab("Ingredients");
+    setServingsCount(4);
+    setActiveScreen("RecipeDetail");
+  };
+
+  const handleCloseRecipeDetail = () => {
+    setSelectedRecipe(null);
+    setActiveScreen("App");
+  };
+
+  const handleEditRecipe = (recipe: Recipe) => {
+    setEditingRecipe(recipe);
+    setActiveScreen("EditRecipe");
+  };
+
+  const handleCloseEditRecipe = () => {
+    setEditingRecipe(null);
+    setActiveScreen("RecipeDetail");
+  };
+
+  const handleSaveEditedRecipe = (updatedRecipe: Recipe) => {
+    setRecipesList(prev => prev.map(rec => rec.id === updatedRecipe.id ? updatedRecipe : rec));
+    setSelectedRecipe(updatedRecipe);
+    setEditingRecipe(null);
+    setActiveScreen("RecipeDetail");
+  };
+
+  const handleStartCookMode = (recipe: Recipe) => {
+    setCookModeRecipe(recipe);
+    setCookModeCurrentStep(0);
+    setCookModeTimerActive(false);
+    
+    // Parse cookTime (e.g., "5 mins" -> 300) or default to 20 minutes (1200 seconds)
+    const timeMatch = recipe.cookTime.match(/(\d+)/);
+    const minutes = timeMatch ? parseInt(timeMatch[1], 10) : 20;
+    setCookModeTimerSeconds(minutes * 60);
+    
+    setActiveScreen("CookMode");
+  };
+
+  const handleCloseCookMode = () => {
+    setCookModeRecipe(null);
+    setCookModeTimerActive(false);
+    setActiveScreen("RecipeDetail");
+  };
+
+  const handleOpenAddRecipeScreen = () => {
+    setActiveScreen("AddRecipe");
+  };
+
+  const handleCloseAddRecipeScreen = () => {
+    setActiveScreen("App");
+    setActiveTab("Recipes");
+  };
+
+  const handleSaveNewRecipe = (newRecipe: Recipe) => {
+    setRecipesList(prev => [newRecipe, ...prev]);
+    setActiveScreen("App");
+    setActiveTab("Recipes");
+  };
+
+  const handleFinishCook = (updatePantry: boolean, recipe: Recipe) => {
+    if (updatePantry) {
+      // Logic to deduct ingredients from pantry
+      const updatedPantry = [...pantryItems];
+      recipe.ingredients.forEach(ing => {
+        const matchingPantry = updatedPantry.find(p => p.name.toLowerCase().includes(ing.name.toLowerCase()) || ing.name.toLowerCase().includes(p.name.toLowerCase()));
+        if (matchingPantry && matchingPantry.quantity > 0) {
+          // Deduct quantity, minimum 0
+          matchingPantry.quantity = Math.max(0, matchingPantry.quantity - 1);
+        }
+      });
+      setPantryItems(updatedPantry);
+    }
+    
+    // Increment trip count / add stats
+    setStats(prev => ({
+      ...prev,
+      tripCount: prev.tripCount + 1,
+      streakDays: prev.streakDays + 1
+    }));
+    
+    // Navigate back to App Home or Recipe detail
+    setCookModeRecipe(null);
+    setCookModeTimerActive(false);
+    setActiveScreen("App");
+    setActiveTab("Home");
   };
 
   // Add a new Pantry Item manually or update an existing one
@@ -1215,10 +1355,10 @@ export const DeviceEmulator: React.FC = () => {
                 className="flex items-center text-xs font-bold text-[#2D6A4F] hover:opacity-80"
               >
                 <ChevronLeft size={16} className="mr-0.5" />
-                <span>Back</span>
+                <span>{t("settings.back")}</span>
               </button>
               <h2 className="text-sm font-black uppercase tracking-wider text-center flex-1 pr-8">
-                Settings
+                {t("settings.title")}
               </h2>
             </div>
 
@@ -1226,14 +1366,14 @@ export const DeviceEmulator: React.FC = () => {
               {/* SECTION: ACCOUNT */}
               <div className="space-y-2">
                 <h3 className={`text-[10px] font-extrabold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>
-                  Account
+                  {t("settings.account")}
                 </h3>
                 <div className={`rounded-xl border divide-y overflow-hidden shadow-sm ${isDarkMode ? "bg-zinc-900 border-zinc-800 divide-zinc-800" : "bg-white border-gray-100 divide-gray-50"}`}>
                   {/* Row 1: Name */}
                   <div className="h-12 px-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <User size={16} className="text-gray-400" />
-                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Name</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.name")}</span>
                     </div>
                     <div className="flex items-center space-x-1.5">
                       <input 
@@ -1250,7 +1390,7 @@ export const DeviceEmulator: React.FC = () => {
                   <div className="h-12 px-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Mail size={16} className="text-gray-400" />
-                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Email</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.email")}</span>
                     </div>
                     <div className="flex items-center space-x-1.5">
                       <input 
@@ -1265,12 +1405,12 @@ export const DeviceEmulator: React.FC = () => {
 
                   {/* Row 3: Change Password */}
                   <button 
-                    onClick={() => alert("Password reset link sent to Gabriel's email simulation.")}
+                    onClick={() => alert(language === "es" ? "Enlace de restablecimiento de contraseña enviado al correo simulado de Gabriel." : "Password reset link sent to Gabriel's email simulation.")}
                     className="w-full h-12 px-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50 dark:hover:bg-zinc-850"
                   >
                     <div className="flex items-center space-x-3">
                       <Lock size={16} className="text-gray-400" />
-                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Change Password</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.password")}</span>
                     </div>
                     <ChevronRight size={12} className="text-gray-300" />
                   </button>
@@ -1280,14 +1420,14 @@ export const DeviceEmulator: React.FC = () => {
               {/* SECTION: PREFERENCES */}
               <div className="space-y-2">
                 <h3 className={`text-[10px] font-extrabold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>
-                  Preferences
+                  {t("settings.preferences")}
                 </h3>
                 <div className={`rounded-xl border divide-y overflow-hidden shadow-sm ${isDarkMode ? "bg-zinc-900 border-zinc-800 divide-zinc-800" : "bg-white border-gray-100 divide-gray-50"}`}>
                   {/* Row 1: Dark Mode */}
                   <div className="h-12 px-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Moon size={16} className="text-gray-400" />
-                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Dark Mode</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.darkMode")}</span>
                     </div>
                     <button 
                       onClick={() => setIsDarkMode(!isDarkMode)}
@@ -1301,7 +1441,7 @@ export const DeviceEmulator: React.FC = () => {
                   <div className="h-12 px-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <span className="text-xs text-gray-400 font-bold">$</span>
-                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Currency</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.currency")}</span>
                     </div>
                     <div className="flex items-center space-x-1.5 cursor-pointer" onClick={() => {
                       const next = currency === "USD $" ? "EUR €" : currency === "EUR €" ? "GBP £" : "USD $";
@@ -1316,7 +1456,7 @@ export const DeviceEmulator: React.FC = () => {
                   <div className="h-12 px-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Store size={16} className="text-gray-400" />
-                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Default Store</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.defaultStore")}</span>
                     </div>
                     <div className="flex items-center space-x-1.5 cursor-pointer" onClick={() => {
                       const stores = ["Walmart", "Target", "Trader Joe's", "Whole Foods", "Kroger"];
@@ -1328,13 +1468,30 @@ export const DeviceEmulator: React.FC = () => {
                       <ChevronRight size={12} className="text-gray-300" />
                     </div>
                   </div>
+
+                  {/* Row 4: Language Switcher */}
+                  <div className="h-12 px-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xs text-gray-400 font-bold">🌐</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.language")}</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5 cursor-pointer" onClick={() => {
+                      const nextLang = language === "en" ? "es" : "en";
+                      setLanguage(nextLang);
+                    }}>
+                      <span className="text-xs text-gray-500 font-medium">
+                        {language === "en" ? "English" : "Español (Latinoamérica)"}
+                      </span>
+                      <ChevronRight size={12} className="text-gray-300" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* SECTION: NOTIFICATIONS */}
               <div className="space-y-2">
                 <h3 className={`text-[10px] font-extrabold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>
-                  Notifications
+                  {t("settings.notifications")}
                 </h3>
                 <div className={`rounded-xl border divide-y overflow-hidden shadow-sm ${isDarkMode ? "bg-zinc-900 border-zinc-800 divide-zinc-800" : "bg-white border-gray-100 divide-gray-50"}`}>
                   <button 
@@ -1796,6 +1953,101 @@ export const DeviceEmulator: React.FC = () => {
           </div>
         )}
 
+        {/* ==================== RECIPE DETAIL SCREEN ==================== */}
+        {activeScreen === "RecipeDetail" && selectedRecipe && (
+          <RecipeDetailScreen
+            recipe={selectedRecipe}
+            servings={servingsCount}
+            setServings={setServingsCount}
+            activeTab={recipeDetailTab}
+            setActiveTab={setRecipeDetailTab}
+            onClose={handleCloseRecipeDetail}
+            onEdit={() => handleEditRecipe(selectedRecipe)}
+            onStartCook={() => handleStartCookMode(selectedRecipe)}
+            onImportIngredients={() => handleAddRecipeIngredients(selectedRecipe)}
+            isDarkMode={isDarkMode}
+          />
+        )}
+
+        {/* ==================== EDIT RECIPE SCREEN ==================== */}
+        {activeScreen === "EditRecipe" && editingRecipe && (
+          <EditRecipeScreen
+            recipe={editingRecipe}
+            onCancel={handleCloseEditRecipe}
+            onSave={handleSaveEditedRecipe}
+            isDarkMode={isDarkMode}
+          />
+        )}
+
+        {/* ==================== COOK STEPS MODE SCREEN ==================== */}
+        {activeScreen === "CookMode" && cookModeRecipe && (
+          <CookModeScreen
+            recipe={cookModeRecipe}
+            currentStep={cookModeCurrentStep}
+            setCurrentStep={setCookModeCurrentStep}
+            timerSeconds={cookModeTimerSeconds}
+            setTimerSeconds={setCookModeTimerSeconds}
+            timerActive={cookModeTimerActive}
+            setTimerActive={setCookModeTimerActive}
+            onClose={handleCloseCookMode}
+            onFinish={(updatePantry) => handleFinishCook(updatePantry, cookModeRecipe)}
+          />
+        )}
+
+        {/* ==================== ADD CUSTOM RECIPE SCREEN ==================== */}
+        {activeScreen === "AddRecipe" && (
+          <AddRecipeScreen
+            onCancel={handleCloseAddRecipeScreen}
+            onSave={handleSaveNewRecipe}
+            isDarkMode={isDarkMode}
+          />
+        )}
+
+        {/* ==================== MAGIC RECIPE RESULTS SCREEN ==================== */}
+        {activeScreen === "MagicResults" && magicInputParams && (
+          <MagicResultsScreen
+            inputParams={magicInputParams}
+            onBack={() => setActiveScreen("App")}
+            onViewRecipe={(recipeId, title) => {
+              setSelectedAIRecipeId(recipeId);
+              setSelectedAIRecipeTitle(title);
+              setActiveScreen("AIRecipeDetail");
+            }}
+            isDarkMode={isDarkMode}
+          />
+        )}
+
+        {/* ==================== AI RECIPE DETAIL SCREEN ==================== */}
+        {activeScreen === "AIRecipeDetail" && selectedAIRecipeId && (
+          <AIRecipeDetailScreen
+            recipeId={selectedAIRecipeId}
+            recipeTitle={selectedAIRecipeTitle}
+            onClose={() => setActiveScreen("MagicResults")}
+            onSaveToMyRecipes={(newRecipe) => {
+              // Add to recipesList so it appears in the Recipes tab!
+              const savedRecipe: Recipe = {
+                ...newRecipe,
+                id: "ai_" + Date.now(),
+              };
+              setRecipesList(prev => {
+                // Avoid duplicates
+                if (prev.some(r => r.name === savedRecipe.name)) return prev;
+                return [...prev, savedRecipe];
+              });
+              alert(`"${savedRecipe.name}" successfully added to your Recipes collection!`);
+            }}
+            onCookNow={(recipe) => {
+              // Directly launch CookMode with the AI recipe!
+              setCookModeRecipe(recipe);
+              setCookModeCurrentStep(0);
+              setCookModeTimerSeconds(0);
+              setCookModeTimerActive(false);
+              setActiveScreen("CookMode");
+            }}
+            isDarkMode={isDarkMode}
+          />
+        )}
+
         {/* ==================== STANDARD APP SCREENS ==================== */}
         {activeScreen === "App" && (
           <>
@@ -1805,7 +2057,7 @@ export const DeviceEmulator: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs text-gray-400 block font-semibold uppercase tracking-wider">Welcome Back</span>
+                <span className="text-xs text-gray-400 block font-semibold uppercase tracking-wider">{t("home.welcome")}</span>
                 <h1 className="text-2xl font-bold tracking-tight">gabrowitt@gmail.com</h1>
               </div>
               <button 
@@ -1821,12 +2073,14 @@ export const DeviceEmulator: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center space-x-1">
                   <Flame size={18} className="text-[#F4A261] animate-pulse fill-[#F4A261]" />
-                  <span className="font-bold text-lg">{stats.streakDays} Day Streak!</span>
+                  <span className="font-bold text-lg">{stats.streakDays} {language === "es" ? "¡Días de Racha!" : "Day Streak!"}</span>
                 </div>
-                <p className="text-[11px] text-gray-200">You are shopping sustainably with fresh ingredients.</p>
+                <p className="text-[11px] text-gray-200">
+                  {language === "es" ? "Estás comprando de forma sostenible con ingredientes frescos." : "You are shopping sustainably with fresh ingredients."}
+                </p>
               </div>
               <div className="bg-[#D8F3DC]/20 px-3 py-1.5 rounded-xl border border-white/10 text-center backdrop-blur-sm">
-                <span className="text-[9px] block uppercase text-gray-200">Total Spent</span>
+                <span className="text-[9px] block uppercase text-gray-200">{t("home.spent")}</span>
                 <span className="font-extrabold text-sm text-[#D8F3DC]">${stats.totalSpent.toFixed(2)}</span>
               </div>
             </div>
@@ -1834,11 +2088,15 @@ export const DeviceEmulator: React.FC = () => {
             {/* Aggregated Overview */}
             <div className="grid grid-cols-2 gap-3">
               <div className={`p-4 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? "bg-zinc-900/60 border-zinc-800/60" : "bg-white/60 border-white/40"}`}>
-                <span className="text-xs text-gray-400 font-semibold block uppercase">Total Trips</span>
+                <span className="text-xs text-gray-400 font-semibold block uppercase">
+                  {language === "es" ? "Viajes Totales" : "Total Trips"}
+                </span>
                 <span className="text-2xl font-black text-[#2D6A4F] mt-1 block">{stats.totalTrips}</span>
               </div>
               <div className={`p-4 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? "bg-zinc-900/60 border-zinc-800/60" : "bg-white/60 border-white/40"}`}>
-                <span className="text-xs text-gray-400 font-semibold block uppercase">Items Bought</span>
+                <span className="text-xs text-gray-400 font-semibold block uppercase">
+                  {language === "es" ? "Artículos Comprados" : "Items Bought"}
+                </span>
                 <span className="text-2xl font-black text-[#2D6A4F] mt-1 block">{stats.totalItemsPurchased}</span>
               </div>
             </div>
@@ -1854,12 +2112,14 @@ export const DeviceEmulator: React.FC = () => {
                 <div className="flex items-center justify-between w-full">
                   <Package size={18} className="text-[#2D6A4F]" />
                   <span className="text-[9px] font-extrabold uppercase bg-[#2D6A4F]/10 text-[#2D6A4F] px-1.5 py-0.5 rounded-md">
-                    {pantryItems.length} Items
+                    {pantryItems.length} {language === "es" ? "Artículos" : "Items"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] font-black block tracking-tight">Pantry Manager</span>
-                  <span className="text-[9px] text-gray-400 block leading-tight">Track expiration dates</span>
+                  <span className="text-[11px] font-black block tracking-tight">{t("pantry.title")}</span>
+                  <span className="text-[9px] text-gray-400 block leading-tight">
+                    {language === "es" ? "Controla vencimientos" : "Track expiration dates"}
+                  </span>
                 </div>
               </button>
 
@@ -1872,12 +2132,16 @@ export const DeviceEmulator: React.FC = () => {
                 <div className="flex items-center justify-between w-full">
                   <Lightbulb size={18} className="text-amber-500 animate-pulse" />
                   <span className="text-[9px] font-extrabold uppercase bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-md">
-                    AI Active
+                    {language === "es" ? "IA Activa" : "AI Active"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] font-black block tracking-tight">Smart Suggestions</span>
-                  <span className="text-[9px] text-gray-400 block leading-tight">Predict your next buy</span>
+                  <span className="text-[11px] font-black block tracking-tight">
+                    {language === "es" ? "Sugerencias IA" : "Smart Suggestions"}
+                  </span>
+                  <span className="text-[9px] text-gray-400 block leading-tight">
+                    {language === "es" ? "Predice tu compra" : "Predict your next buy"}
+                  </span>
                 </div>
               </button>
             </div>
@@ -1887,15 +2151,19 @@ export const DeviceEmulator: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <ShoppingCart size={18} className="text-[#2D6A4F]" />
-                  <span className="font-bold text-sm">Active Shopping Trip</span>
+                  <span className="font-bold text-sm">
+                    {language === "es" ? "Compra Activa" : "Active Shopping Trip"}
+                  </span>
                 </div>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#D8F3DC] text-[#2D6A4F]">
-                  {items.length} items
+                  {items.length} {language === "es" ? "artículos" : "items"}
                 </span>
               </div>
               
               {items.length === 0 ? (
-                <p className="text-xs text-gray-400 py-2">Your list is currently empty. Head to the Supermarket tab to add items!</p>
+                <p className="text-xs text-gray-400 py-2">
+                  {language === "es" ? "Tu lista está vacía. ¡Ve a la pestaña Lista para agregar artículos!" : "Your list is currently empty. Head to the Supermarket tab to add items!"}
+                </p>
               ) : (
                 <div className="space-y-2 max-h-[120px] overflow-y-auto mb-3 pr-1">
                   {items.map(it => (
@@ -1913,16 +2181,18 @@ export const DeviceEmulator: React.FC = () => {
                 onClick={() => setActiveTab("Supermarket")}
                 className="w-full bg-[#2D6A4F] text-white py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center space-x-1.5 hover:bg-[#1B4332] transition-colors"
               >
-                <span>Manage Cart</span>
+                <span>{language === "es" ? "Gestionar Carrito" : "Manage Cart"}</span>
                 <ChevronRight size={14} />
               </button>
             </div>
 
             {/* History Feed */}
             <div className="space-y-3">
-              <h3 className="font-bold text-sm">Shopping History</h3>
+              <h3 className="font-bold text-sm">{t("home.history")}</h3>
               {history.length === 0 ? (
-                <p className="text-xs text-gray-400">No completed trips saved yet.</p>
+                <p className="text-xs text-gray-400">
+                  {language === "es" ? "Aún no hay compras completadas." : "No completed trips saved yet."}
+                </p>
               ) : (
                 <div className="space-y-2">
                   {history.map(hist => (
@@ -1932,7 +2202,9 @@ export const DeviceEmulator: React.FC = () => {
                           <Calendar size={12} />
                           <span>{new Date(hist.purchaseDate).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-[10px] text-gray-400">{hist.items.length} items purchased successfully</p>
+                        <p className="text-[10px] text-gray-400">
+                          {hist.items.length} {language === "es" ? "artículos comprados con éxito" : "items purchased successfully"}
+                        </p>
                       </div>
                       <span className="font-mono text-xs font-bold text-[#2D6A4F]">${hist.totalCost.toFixed(2)}</span>
                     </div>
@@ -1950,8 +2222,10 @@ export const DeviceEmulator: React.FC = () => {
             <div className="px-5 py-3 border-b border-gray-100/10 flex flex-col space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight">Supermarket</h1>
-                  <p className="text-[10px] text-gray-400">Create your shopping list & check out.</p>
+                  <h1 className="text-xl font-bold tracking-tight">{language === "es" ? "Supermercado" : "Supermarket"}</h1>
+                  <p className="text-[10px] text-gray-400">
+                    {language === "es" ? "Crea tu lista de compras y finaliza la compra." : "Create your shopping list & check out."}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-1.5">
                   <button
@@ -1959,7 +2233,7 @@ export const DeviceEmulator: React.FC = () => {
                     className="text-[11px] font-bold px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 dark:hover:bg-amber-500/25 transition-all flex items-center space-x-1 shadow-sm"
                   >
                     <Lightbulb size={12} className="animate-pulse" />
-                    <span>Suggestions</span>
+                    <span>{language === "es" ? "Sugerencias" : "Suggestions"}</span>
                   </button>
                   <button
                     onClick={() => setShowAddItem(!showAddItem)}
@@ -1969,7 +2243,7 @@ export const DeviceEmulator: React.FC = () => {
                         : "bg-[#2D6A4F]/10 text-[#2D6A4F] hover:bg-[#2D6A4F]/20 dark:bg-[#D8F3DC]/15 dark:text-[#D8F3DC] dark:hover:bg-[#D8F3DC]/25"
                     }`}
                   >
-                    <span>add item +</span>
+                    <span>{language === "es" ? "Agregar +" : "add item +"}</span>
                   </button>
                 </div>
               </div>
@@ -1980,7 +2254,7 @@ export const DeviceEmulator: React.FC = () => {
                   <div className="flex space-x-2">
                     <input 
                       type="text" 
-                      placeholder="Add item (e.g., Gala Apples)"
+                      placeholder={language === "es" ? "Añadir artículo (ej: Manzanas Gala)" : "Add item (e.g., Gala Apples)"}
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleAddItem(newItemName, newItemCategory); }}
@@ -1993,7 +2267,7 @@ export const DeviceEmulator: React.FC = () => {
                       className={`px-2 py-2 text-xs rounded-xl border outline-none ${isDarkMode ? "bg-black/40 text-white border-zinc-800/60" : "bg-white/60 text-gray-900 border-gray-300/80"}`}
                     >
                       {CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                        <option key={cat} value={cat}>{language === "es" && cat === "Fruits" ? "Frutas" : language === "es" && cat === "Vegetables" ? "Verduras" : language === "es" && cat === "Dairy" ? "Lácteos" : language === "es" && cat === "Meat" ? "Carne" : language === "es" && cat === "Pantry" ? "Alacena" : language === "es" && cat === "Bakery" ? "Panadería" : language === "es" && cat === "Snacks" ? "Snacks" : cat}</option>
                       ))}
                     </select>
                     <button 
@@ -2019,7 +2293,7 @@ export const DeviceEmulator: React.FC = () => {
                       : (isDarkMode ? "bg-zinc-800 text-gray-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200")
                   }`}
                 >
-                  {cat}
+                  {cat === "All" ? (language === "es" ? "Todo" : "All") : (language === "es" && cat === "Fruits" ? "Frutas" : language === "es" && cat === "Vegetables" ? "Verduras" : language === "es" && cat === "Dairy" ? "Lácteos" : language === "es" && cat === "Meat" ? "Carne" : language === "es" && cat === "Pantry" ? "Alacena" : language === "es" && cat === "Bakery" ? "Panadería" : language === "es" && cat === "Snacks" ? "Snacks" : cat)}
                 </button>
               ))}
             </div>
@@ -2029,8 +2303,12 @@ export const DeviceEmulator: React.FC = () => {
               {filteredItems.length === 0 ? (
                 <div className="text-center py-12 px-4">
                   <ShoppingCart size={40} className="mx-auto text-gray-300 mb-2" />
-                  <p className="text-xs font-semibold text-gray-400">Your shopping list is clear!</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Add items above or import them from recipes.</p>
+                  <p className="text-xs font-semibold text-gray-400">
+                    {language === "es" ? "¡Tu lista de compras está vacía!" : "Your shopping list is clear!"}
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {language === "es" ? "Agrega artículos arriba o impórtalos desde recetas." : "Add items above or import them from recipes."}
+                  </p>
                 </div>
               ) : (
                 filteredItems.map(item => {
@@ -2067,7 +2345,7 @@ export const DeviceEmulator: React.FC = () => {
                             {item.name}
                           </span>
                           <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[#D8F3DC] text-[#2D6A4F] font-semibold">
-                            {item.category}
+                            {language === "es" && item.category === "Fruits" ? "Frutas" : language === "es" && item.category === "Vegetables" ? "Verduras" : language === "es" && item.category === "Dairy" ? "Lácteos" : language === "es" && item.category === "Meat" ? "Carne" : language === "es" && item.category === "Pantry" ? "Alacena" : language === "es" && item.category === "Bakery" ? "Panadería" : language === "es" && item.category === "Snacks" ? "Snacks" : item.category}
                           </span>
                         </div>
 
@@ -2078,7 +2356,7 @@ export const DeviceEmulator: React.FC = () => {
                             onClick={() => openQuantityModal(item)}
                             className={`flex items-center space-x-1 px-2 py-0.5 rounded-lg text-[9px] font-bold border border-white/20 dark:border-zinc-800/20 ${isDarkMode ? "bg-zinc-800/60 text-gray-300" : "bg-gray-100/60 text-gray-600"}`}
                           >
-                            <span>Qty:</span>
+                            <span>{language === "es" ? "Cant:" : "Qty:"}</span>
                             <span className={item.quantity > 0 ? "text-[#2D6A4F]" : "text-gray-400"}>
                               {item.quantity}
                             </span>
@@ -2090,7 +2368,7 @@ export const DeviceEmulator: React.FC = () => {
                             onClick={() => openPriceModal(item)}
                             className={`flex items-center space-x-1 px-2 py-0.5 rounded-lg text-[9px] font-bold border border-white/20 dark:border-zinc-800/20 ${isDarkMode ? "bg-zinc-800/60 text-gray-300" : "bg-gray-100/60 text-gray-600"}`}
                           >
-                            <span>Price:</span>
+                            <span>{language === "es" ? "Precio:" : "Price:"}</span>
                             <span className="text-gray-700 dark:text-gray-200">
                               ${item.price.toFixed(2)}
                             </span>
@@ -2130,7 +2408,7 @@ export const DeviceEmulator: React.FC = () => {
                   }
                 }}
               >
-                <span className="text-gray-400">Total Purchase:</span>
+                <span className="text-gray-400">{language === "es" ? "Compra Total:" : "Total Purchase:"}</span>
                 <span className="text-sm font-black text-[#2D6A4F] hover:underline">${totalCostOfCurrentTrip.toFixed(2)}</span>
               </div>
               <button
@@ -2145,17 +2423,19 @@ export const DeviceEmulator: React.FC = () => {
                 {isFinishing ? (
                   <>
                     <RefreshCw size={14} className="animate-spin" />
-                    <span>Saving to Cloud Database...</span>
+                    <span>{language === "es" ? "Guardando en la Base de Datos..." : "Saving to Cloud Database..."}</span>
                   </>
                 ) : (
                   <>
                     <Check size={14} />
-                    <span>Finish Shopping</span>
+                    <span>{language === "es" ? "Finalizar Compra" : "Finish Shopping"}</span>
                   </>
                 )}
               </button>
               <p className="text-[9px] text-center text-gray-400 mt-2">
-                * Zero quantity & unpurchased items will remain for your next trip.
+                {language === "es" 
+                  ? "* Los artículos con cantidad cero y no comprados se mantendrán para tu próxima compra."
+                  : "* Zero quantity & unpurchased items will remain for your next trip."}
               </p>
             </div>
           </div>
@@ -2164,28 +2444,52 @@ export const DeviceEmulator: React.FC = () => {
         {/* ==================== RECIPES SCREEN ==================== */}
         {activeTab === "Recipes" && (
           <div className="px-5 py-3 space-y-4 animate-fade-in">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">Healthy Recipes</h1>
-              <p className="text-[10px] text-gray-400">Import recipe ingredients directly to list.</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">
+                  {language === "es" ? "Recetas Saludables" : "Healthy Recipes"}
+                </h1>
+                <p className="text-[10px] text-gray-400">
+                  {language === "es" ? "Importa ingredientes de recetas directamente a la lista." : "Import recipe ingredients directly to list."}
+                </p>
+              </div>
+              <button
+                onClick={handleOpenAddRecipeScreen}
+                className="flex items-center space-x-1.5 bg-[#2D6A4F] text-white px-3 py-1.5 rounded-full text-[11px] font-bold hover:bg-[#1B4332] transition-all shadow-sm active:scale-95"
+              >
+                <Plus size={12} />
+                <span>{language === "es" ? "Nueva Receta" : "Add Recipe"}</span>
+              </button>
             </div>
 
             <div className="space-y-4">
-              {POPULAR_RECIPES.map(recipe => (
-                <div key={recipe.id} className={`rounded-2xl border overflow-hidden shadow-sm flex flex-col backdrop-blur-md ${isDarkMode ? "bg-zinc-900/60 border-zinc-800/60" : "bg-white/65 border-white/50"}`}>
-                  {/* Decorative Banner */}
-                  <div className="h-16 bg-gradient-to-r from-[#2D6A4F]/90 to-[#40916C]/90 p-3 text-white flex flex-col justify-end">
-                    <h3 className="text-xs font-extrabold leading-tight">{recipe.name}</h3>
+              {recipesList.map(recipe => (
+                <div key={recipe.id} className={`rounded-2xl border overflow-hidden shadow-sm flex flex-col backdrop-blur-md transition-all hover:shadow-md ${isDarkMode ? "bg-zinc-900/60 border-zinc-800/60" : "bg-white/65 border-white/50"}`}>
+                  {/* Decorative Banner - Clickable */}
+                  <div 
+                    onClick={() => handleViewRecipeDetail(recipe)}
+                    className="h-16 bg-gradient-to-r from-[#2D6A4F]/90 to-[#40916C]/90 p-3 text-white flex flex-col justify-end cursor-pointer hover:opacity-95 transition-all group relative"
+                  >
+                    <h3 className="text-xs font-extrabold leading-tight group-hover:underline">{recipe.name}</h3>
+                    <span className="absolute top-2 right-3 text-[9px] bg-white/20 px-2 py-0.5 rounded-full font-semibold backdrop-blur-sm">
+                      {language === "es" ? "Ver detalles →" : "View details →"}
+                    </span>
                   </div>
 
                   {/* Recipe Details */}
                   <div className="p-4 space-y-3">
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{recipe.description}</p>
+                    <p 
+                      onClick={() => handleViewRecipeDetail(recipe)}
+                      className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed cursor-pointer hover:text-[#2D6A4F]"
+                    >
+                      {recipe.description}
+                    </p>
                     
                     {/* Time & Badges */}
                     <div className="flex space-x-4 text-[10px] text-gray-500 font-semibold border-y py-2 border-gray-150/10">
                       <div className="flex items-center space-x-1">
                         <Clock size={11} className="text-[#2D6A4F]" />
-                        <span>Prep: {recipe.prepTime}</span>
+                        <span>{language === "es" ? "Prep: " : "Prep: "}{recipe.prepTime.replace("mins", "min")}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Flame size={11} className="text-orange-500" />
@@ -2193,31 +2497,49 @@ export const DeviceEmulator: React.FC = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Award size={11} className="text-amber-500" />
-                        <span>{recipe.difficulty}</span>
+                        <span>{language === "es" && recipe.difficulty === "Easy" ? "Fácil" : language === "es" && recipe.difficulty === "Medium" ? "Medio" : language === "es" && recipe.difficulty === "Hard" ? "Difícil" : recipe.difficulty}</span>
                       </div>
                     </div>
 
                     {/* Ingredients needed */}
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-[#2D6A4F] uppercase tracking-wider block">Ingredients:</span>
+                      <span className="text-[10px] font-bold text-[#2D6A4F] uppercase tracking-wider block">
+                        {language === "es" ? "Ingredientes:" : "Ingredients:"}
+                      </span>
                       <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-gray-400">
-                        {recipe.ingredients.map((ing, i) => (
+                        {recipe.ingredients.slice(0, 4).map((ing, i) => (
                           <div key={i} className="flex justify-between border-b border-gray-150/10 py-0.5">
-                            <span className="font-semibold">{ing.name}</span>
+                            <span className="font-semibold truncate max-w-[90px]">{ing.name}</span>
                             <span>{ing.amount}</span>
                           </div>
                         ))}
+                        {recipe.ingredients.length > 4 && (
+                          <div 
+                            onClick={() => handleViewRecipeDetail(recipe)}
+                            className="col-span-2 text-center text-[9px] text-[#2D6A4F] font-semibold cursor-pointer hover:underline pt-1"
+                          >
+                            + {recipe.ingredients.length - 4} {language === "es" ? "ingredientes más" : "more ingredients"}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Action Button */}
-                    <button
-                      onClick={() => handleAddRecipeIngredients(recipe)}
-                      className="w-full bg-[#D8F3DC]/80 text-[#1B4332] border border-[#2D6A4F]/20 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 hover:bg-[#2D6A4F] hover:text-white backdrop-blur-sm transition-all"
-                    >
-                      <Plus size={12} />
-                      <span>Add Ingredients to List</span>
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleAddRecipeIngredients(recipe)}
+                        className="flex-1 bg-[#D8F3DC]/80 text-[#1B4332] border border-[#2D6A4F]/20 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1 hover:bg-[#2D6A4F] hover:text-white backdrop-blur-sm transition-all active:scale-95"
+                      >
+                        <Plus size={12} />
+                        <span>{language === "es" ? "Añadir a Lista" : "Add to List"}</span>
+                      </button>
+                      <button
+                        onClick={() => handleViewRecipeDetail(recipe)}
+                        className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-xl text-xs font-bold hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
+                      >
+                        {language === "es" ? "Ver Detalle" : "View Detail"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -2227,146 +2549,14 @@ export const DeviceEmulator: React.FC = () => {
 
         {/* ==================== MAGIC RECIPE SCREEN (AI CHEF) ==================== */}
         {activeTab === "Magic" && (
-          <div className="px-5 py-3 space-y-4 animate-fade-in flex flex-col h-full">
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <ChefHat size={20} className="text-[#2D6A4F]" />
-                <h1 className="text-xl font-bold tracking-tight">AI Chef Creator</h1>
-              </div>
-              <p className="text-[10px] text-gray-400">Weaves recipes using ingredients currently in your list!</p>
-            </div>
-
-            {isGeneratingRecipe ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center py-12 px-4 space-y-4 animate-pulse">
-                <div className="relative">
-                  <ChefHat size={48} className="text-[#2D6A4F] animate-bounce" />
-                  <Sparkles size={20} className="text-[#F4A261] absolute -top-1 -right-1 animate-spin" />
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-xs">AI Chef in the kitchen</h4>
-                  <p className="text-[10px] text-gray-400 font-mono italic">{chefMessages[chefMessageIndex]}</p>
-                </div>
-              </div>
-            ) : aiRecipe ? (
-              <div className="space-y-4 flex-1 overflow-y-auto pr-1">
-                {/* Result Card */}
-                <div className={`rounded-2xl border overflow-hidden shadow-sm flex flex-col backdrop-blur-md ${isDarkMode ? "bg-zinc-900/60 border-zinc-800/60" : "bg-white/65 border-white/50"}`}>
-                  <div className="bg-[#2D6A4F] text-white p-4">
-                    <div className="flex items-center space-x-1 mb-1">
-                      <Sparkle size={12} className="text-amber-300 fill-amber-300" />
-                      <span className="text-[8px] tracking-wider uppercase font-extrabold text-[#D8F3DC]">Custom AI Recipe</span>
-                    </div>
-                    <h3 className="text-sm font-black leading-tight">{aiRecipe.name}</h3>
-                    <p className="text-[10px] text-gray-200 mt-1 leading-relaxed italic">"{aiRecipe.description}"</p>
-                  </div>
-
-                  <div className="p-4 space-y-4">
-                    {/* Cooking Parameters */}
-                    <div className="grid grid-cols-4 gap-2 text-center text-[9px] font-bold py-2 bg-gray-50 dark:bg-zinc-800 rounded-xl">
-                      <div>
-                        <span className="text-gray-400 block font-normal">Prep</span>
-                        <span>{aiRecipe.prepTime}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 block font-normal">Cook</span>
-                        <span>{aiRecipe.cookTime}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 block font-normal">Level</span>
-                        <span className="text-green-600 dark:text-green-400">{aiRecipe.difficulty}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 block font-normal">Cal</span>
-                        <span>{aiRecipe.calories}</span>
-                      </div>
-                    </div>
-
-                    {/* Ingredients list */}
-                    <div className="space-y-1.5">
-                      <h4 className="text-[10px] uppercase tracking-wider font-extrabold text-[#2D6A4F]">Required Elements</h4>
-                      <ul className="space-y-1 text-[10px] text-gray-400">
-                        {aiRecipe.ingredients.map((ing, i) => (
-                          <li key={i} className="flex justify-between border-b border-gray-100/5 py-0.5">
-                            <span className="font-semibold">{ing.name}</span>
-                            <span>{ing.amount}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Steps list */}
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] uppercase tracking-wider font-extrabold text-[#2D6A4F]">Cooking Method</h4>
-                      <ol className="space-y-1.5 text-[10px] text-gray-400 list-decimal pl-4">
-                        {aiRecipe.steps.map((step, i) => (
-                          <li key={i} className="leading-relaxed pl-1">{step}</li>
-                        ))}
-                      </ol>
-                    </div>
-
-                    {/* Chef Tip Card */}
-                    <div className="p-3 bg-[#D8F3DC]/20 border border-[#2D6A4F]/20 rounded-xl">
-                      <span className="text-[10px] font-extrabold text-[#1B4332] block">Chef's Pro-Tip:</span>
-                      <p className="text-[9px] text-[#2D6A4F] leading-relaxed mt-0.5 italic">"{aiRecipe.chefTips}"</p>
-                    </div>
-
-                    <button
-                      onClick={handleGenerateMagicRecipe}
-                      className="w-full bg-[#2D6A4F] text-white py-2.5 rounded-xl text-xs font-bold hover:bg-[#1B4332] transition-colors"
-                    >
-                      Regenerate Another Meal
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center py-12 px-4 space-y-4">
-                <div className="p-4 bg-[#D8F3DC] text-[#2D6A4F] rounded-full">
-                  <ChefHat size={32} />
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-xs">Let AI Chef Cook</h4>
-                  <p className="text-[10px] text-gray-400 max-w-xs leading-relaxed">
-                    Uses the actual ingredients currently added in your list with quantity &gt; 0 to compile a custom recipe in real-time.
-                  </p>
-                </div>
-
-                <div className="p-3 border border-white/10 dark:border-zinc-800/40 rounded-xl w-full text-left backdrop-blur-sm bg-gray-50/50 dark:bg-zinc-900/40">
-                  <span className="text-[9px] block text-gray-400 font-bold uppercase tracking-wider mb-1.5">Chef's Pantry Ingredients:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {items.filter(it => it.quantity > 0).length === 0 ? (
-                      <span className="text-[10px] text-red-500 italic font-semibold">Your pantry list is currently empty! Added items will show here.</span>
-                    ) : (
-                      items.filter(it => it.quantity > 0).map(it => (
-                        <span key={it.id} className="text-[9px] px-2 py-0.5 rounded-full bg-[#D8F3DC] text-[#2D6A4F] font-semibold">
-                          {it.name} (x{it.quantity})
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {recipeError && (
-                  <p className="text-[10px] text-red-500 bg-red-50 dark:bg-red-900/10 p-2.5 rounded-xl leading-relaxed text-left">
-                    {recipeError}
-                  </p>
-                )}
-
-                <button
-                  onClick={handleGenerateMagicRecipe}
-                  disabled={items.filter(it => it.quantity > 0).length === 0}
-                  className={`w-full py-3 rounded-xl text-xs font-extrabold text-white flex items-center justify-center space-x-2 shadow-md transition-colors ${
-                    items.filter(it => it.quantity > 0).length === 0
-                      ? "bg-gray-300 dark:bg-zinc-800 cursor-not-allowed text-gray-500 shadow-none"
-                      : "bg-[#2D6A4F] hover:bg-[#1B4332]"
-                  }`}
-                >
-                  <Sparkles size={14} />
-                  <span>Ask AI Chef to Compile</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <MagicInputScreen
+            pantryItems={pantryItems}
+            onFindRecipes={(params) => {
+              setMagicInputParams(params);
+              setActiveScreen("MagicResults");
+            }}
+            isDarkMode={isDarkMode}
+          />
         )}
 
         {/* ==================== PROFILE SCREEN ==================== */}
@@ -2385,10 +2575,10 @@ export const DeviceEmulator: React.FC = () => {
 
               {/* Edit Profile Pill */}
               <button 
-                onClick={() => alert("Edit Profile modal initiated in sandbox.")}
+                onClick={() => alert(language === "es" ? "Modal de edición de perfil iniciado en sandbox." : "Edit Profile modal initiated in sandbox.")}
                 className="mt-3.5 border-1.5 border-white rounded-full px-4 py-1 text-[10px] font-extrabold text-white tracking-wide hover:bg-white/10 active:scale-95 transition-all"
               >
-                Edit Profile
+                {language === "es" ? "Editar Perfil" : "Edit Profile"}
               </button>
             </div>
 
@@ -2398,7 +2588,7 @@ export const DeviceEmulator: React.FC = () => {
               {/* STATS SECTION */}
               <div className="space-y-3">
                 <h3 className={`text-xs font-extrabold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>
-                  Your Activity
+                  {language === "es" ? "Tu Actividad" : "Your Activity"}
                 </h3>
                 
                 {/* 2x2 Grid */}
@@ -2407,28 +2597,36 @@ export const DeviceEmulator: React.FC = () => {
                   <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm border ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-100"}`}>
                     <span className="text-2xl mb-1.5">🍳</span>
                     <span className="text-xl font-black text-[#2D6A4F]">12</span>
-                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">Recipes Saved</span>
+                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">
+                      {language === "es" ? "Recetas Guardadas" : "Recipes Saved"}
+                    </span>
                   </div>
 
                   {/* Stat Card 2 */}
                   <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm border ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-100"}`}>
                     <span className="text-2xl mb-1.5">📋</span>
                     <span className="text-xl font-black text-[#2D6A4F]">5</span>
-                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">Lists Completed</span>
+                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">
+                      {language === "es" ? "Listas Completadas" : "Lists Completed"}
+                    </span>
                   </div>
 
                   {/* Stat Card 3 */}
                   <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm border ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-100"}`}>
                     <span className="text-2xl mb-1.5">📦</span>
                     <span className="text-xl font-black text-[#2D6A4F]">34</span>
-                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">Pantry Items</span>
+                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">
+                      {language === "es" ? "Artículos Alacena" : "Pantry Items"}
+                    </span>
                   </div>
 
                   {/* Stat Card 4 */}
                   <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm border ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-100"}`}>
                     <span className="text-2xl mb-1.5">💰</span>
                     <span className="text-xl font-black text-[#2D6A4F]">$245</span>
-                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">Total Tracked</span>
+                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">
+                      {language === "es" ? "Total Registrado" : "Total Tracked"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -2437,10 +2635,10 @@ export const DeviceEmulator: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className={`text-xs font-extrabold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>
-                    Recent Recipes
+                    {language === "es" ? "Recetas Recientes" : "Recent Recipes"}
                   </h3>
                   <button className="text-[11px] font-bold text-[#2D6A4F] flex items-center space-x-1 hover:underline">
-                    <span>See all</span>
+                    <span>{language === "es" ? "Ver todo" : "See all"}</span>
                     <span>→</span>
                   </button>
                 </div>
@@ -2480,7 +2678,7 @@ export const DeviceEmulator: React.FC = () => {
                 >
                   <div className="flex items-center space-x-3">
                     <Settings size={18} className="text-gray-400" />
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Settings</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("settings.title")}</span>
                   </div>
                   <ChevronRight size={14} className="text-gray-300" />
                 </button>
@@ -2492,7 +2690,9 @@ export const DeviceEmulator: React.FC = () => {
                 >
                   <div className="flex items-center space-x-3">
                     <Bell size={18} className="text-gray-400" />
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Notifications</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      {language === "es" ? "Notificaciones" : "Notifications"}
+                    </span>
                   </div>
                   <ChevronRight size={14} className="text-gray-300" />
                 </button>
@@ -2504,10 +2704,10 @@ export const DeviceEmulator: React.FC = () => {
                 >
                   <div className="flex items-center space-x-3">
                     <Package size={18} className="text-[#2D6A4F]" />
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Pantry Manager</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("pantry.title")}</span>
                   </div>
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-[10px] text-gray-400 font-bold">{pantryItems.length} items</span>
+                    <span className="text-[10px] text-gray-400 font-bold">{pantryItems.length} {language === "es" ? "artículos" : "items"}</span>
                     <ChevronRight size={14} className="text-gray-300" />
                   </div>
                 </button>
@@ -2519,7 +2719,9 @@ export const DeviceEmulator: React.FC = () => {
                 >
                   <div className="flex items-center space-x-3">
                     <Lightbulb size={18} className="text-amber-500" />
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">AI Smart Suggestions</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      {language === "es" ? "Sugerencias Inteligentes IA" : "AI Smart Suggestions"}
+                    </span>
                   </div>
                   <ChevronRight size={14} className="text-gray-300" />
                 </button>
@@ -2528,7 +2730,9 @@ export const DeviceEmulator: React.FC = () => {
                 <button className="w-full h-13 px-4 flex items-center justify-between transition-colors hover:bg-gray-50 dark:hover:bg-zinc-850">
                   <div className="flex items-center space-x-3">
                     <Shield size={18} className="text-gray-400" />
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Privacy</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      {language === "es" ? "Privacidad" : "Privacy"}
+                    </span>
                   </div>
                   <ChevronRight size={14} className="text-gray-300" />
                 </button>
@@ -2537,7 +2741,9 @@ export const DeviceEmulator: React.FC = () => {
                 <button className="w-full h-13 px-4 flex items-center justify-between transition-colors hover:bg-gray-50 dark:hover:bg-zinc-850">
                   <div className="flex items-center space-x-3">
                     <Star size={18} className="text-gray-400" />
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Rate FreshCart</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      {language === "es" ? "Calificar FreshCart" : "Rate FreshCart"}
+                    </span>
                   </div>
                   <ChevronRight size={14} className="text-gray-300" />
                 </button>
@@ -2554,14 +2760,16 @@ export const DeviceEmulator: React.FC = () => {
                   className="w-full h-13 px-4 flex items-center space-x-3 transition-colors hover:bg-red-50/10"
                 >
                   <LogOut size={18} className="text-red-500" />
-                  <span className="text-xs font-bold text-red-500">Sign Out</span>
+                  <span className="text-xs font-bold text-red-500">
+                    {language === "es" ? "Cerrar Sesión" : "Sign Out"}
+                  </span>
                 </button>
               </div>
 
               {/* DEVELOPER SANDBOX CONTROLS */}
               <div className={`p-4 rounded-2xl border space-y-3 shadow-sm ${isDarkMode ? "bg-zinc-900/40 border-zinc-800/40" : "bg-white/45 border-gray-100"}`}>
                 <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
-                  Developer Sandbox Controls
+                  {language === "es" ? "Controles de Sandbox de Desarrollador" : "Developer Sandbox Controls"}
                 </h4>
                 <div className="flex space-x-2">
                   <button
@@ -2579,22 +2787,22 @@ export const DeviceEmulator: React.FC = () => {
                           totalCost: 6.16
                         }
                       ]);
-                      alert("Seeded developer dummy data to simulation local storage!");
+                      alert(language === "es" ? "¡Se sembraron datos de simulación en el almacenamiento local!" : "Seeded developer dummy data to simulation local storage!");
                     }}
                     className="flex-1 bg-[#2D6A4F]/10 text-[#2D6A4F] text-[10px] py-2 rounded-xl font-extrabold hover:bg-[#2D6A4F]/20 active:scale-95 transition-all"
                   >
-                    Reset & Seed
+                    {language === "es" ? "Reiniciar y Sembrar" : "Reset & Seed"}
                   </button>
                   <button
                     onClick={() => {
                       setItems([]);
                       setHistory([]);
                       setStats({ totalTrips: 0, totalSpent: 0, totalItemsPurchased: 0, streakDays: 0 });
-                      alert("Wiped simulation local storage!");
+                      alert(language === "es" ? "¡Se eliminaron los datos simulados!" : "Wiped simulation local storage!");
                     }}
                     className="flex-1 bg-red-100 text-red-700 dark:bg-red-950/20 text-[10px] py-2 rounded-xl font-extrabold hover:bg-red-200 active:scale-95 transition-all"
                   >
-                    Wipe Data
+                    {language === "es" ? "Borrar Datos" : "Wipe Data"}
                   </button>
                 </div>
                 <button
@@ -2603,7 +2811,9 @@ export const DeviceEmulator: React.FC = () => {
                   }}
                   className="w-full bg-[#2D6A4F] text-white text-[10px] py-2.5 rounded-xl font-extrabold hover:bg-[#1B4332] active:scale-95 transition-all shadow-sm flex items-center justify-center space-x-1.5"
                 >
-                  <span>Replay Splash Screen Simulation</span>
+                  <span>
+                    {language === "es" ? "Repetir Simulación de Pantalla de Inicio" : "Replay Splash Screen Simulation"}
+                  </span>
                 </button>
               </div>
 
@@ -2617,8 +2827,12 @@ export const DeviceEmulator: React.FC = () => {
             {/* Header Row */}
             <div className="flex items-center justify-between pb-1">
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Pantry Manager 🥗</h1>
-                <p className="text-[10px] text-gray-400">Track and manage your kitchen inventory.</p>
+                <h1 className="text-xl font-bold tracking-tight">
+                  {language === "es" ? "Gestor de Alacena 🥗" : "Pantry Manager 🥗"}
+                </h1>
+                <p className="text-[10px] text-gray-400">
+                  {language === "es" ? "Monitorea y gestiona el inventario de tu cocina." : "Track and manage your kitchen inventory."}
+                </p>
               </div>
               <button 
                 onClick={handleOpenAddPantryModal}
@@ -2648,10 +2862,17 @@ export const DeviceEmulator: React.FC = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <Info size={16} className="text-amber-600 dark:text-amber-400" />
-                      <span className="text-xs font-bold">{expiringCount} {expiringCount === 1 ? 'item' : 'items'} expiring soon</span>
+                      <span className="text-xs font-bold">
+                        {expiringCount}{" "}
+                        {language === "es" 
+                          ? (expiringCount === 1 ? "artículo vence pronto" : "artículos vencen pronto")
+                          : (expiringCount === 1 ? "item expiring soon" : "items expiring soon")}
+                      </span>
                     </div>
                     <span className="text-[11px] font-extrabold underline">
-                      {pantryFilterExpiringOnly ? "Show All" : "Filter Expiry"}
+                      {pantryFilterExpiringOnly 
+                        ? (language === "es" ? "Mostrar Todo" : "Show All") 
+                        : (language === "es" ? "Filtrar Vencimiento" : "Filter Expiry")}
                     </span>
                   </button>
                 );
@@ -2672,14 +2893,14 @@ export const DeviceEmulator: React.FC = () => {
               return (
                 <div className="flex space-x-2 text-[10px] font-bold">
                   <div className={`px-3 py-1.5 rounded-full border ${isDarkMode ? "bg-zinc-900 border-zinc-800 text-gray-300" : "bg-white border-gray-100 text-gray-600 shadow-sm"}`}>
-                    {total} items
+                    {total} {language === "es" ? "artículos" : "items"}
                   </div>
                   <div className={`px-3 py-1.5 rounded-full border ${isDarkMode ? "bg-zinc-900 border-zinc-800 text-gray-300" : "bg-white border-gray-100 text-gray-600 shadow-sm"}`}>
-                    {categories} categories
+                    {categories} {language === "es" ? "categorías" : "categories"}
                   </div>
                   {expiring > 0 && (
                     <div className="px-3 py-1.5 rounded-full bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40">
-                      {expiring} expiring
+                      {expiring} {language === "es" ? "por vencer" : "expiring"}
                     </div>
                   )}
                 </div>
@@ -2691,7 +2912,7 @@ export const DeviceEmulator: React.FC = () => {
               <Search size={14} className="text-gray-400 mr-2" />
               <input 
                 type="text" 
-                placeholder="Search pantry..." 
+                placeholder={language === "es" ? "Buscar alacena..." : "Search pantry..."} 
                 value={pantrySearchQuery}
                 onChange={(e) => setPantrySearchQuery(e.target.value)}
                 className="bg-transparent text-xs outline-none border-none w-full text-current"
@@ -2717,7 +2938,7 @@ export const DeviceEmulator: React.FC = () => {
                         : (isDarkMode ? "bg-zinc-800 text-gray-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200")
                     }`}
                   >
-                    {cat}
+                    {cat === "All" ? (language === "es" ? "Todo" : "All") : (language === "es" && cat === "Fruits" ? "Frutas" : language === "es" && cat === "Vegetables" ? "Verduras" : language === "es" && cat === "Dairy" ? "Lácteos" : language === "es" && cat === "Meat" ? "Carne" : language === "es" && cat === "Pantry" ? "Alacena" : language === "es" && cat === "Bakery" ? "Panadería" : language === "es" && cat === "Snacks" ? "Snacks" : cat)}
                   </button>
                 );
               })}
@@ -2748,8 +2969,12 @@ export const DeviceEmulator: React.FC = () => {
                   return (
                     <div className="text-center py-12 px-4">
                       <Package size={40} className="mx-auto text-gray-300 mb-2" />
-                      <p className="text-xs font-semibold text-gray-400">Pantry is clear!</p>
-                      <p className="text-[10px] text-gray-400 mt-1">Add items manually or checkout from list.</p>
+                      <p className="text-xs font-semibold text-gray-400">
+                        {language === "es" ? "¡La alacena está vacía!" : "Pantry is clear!"}
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        {language === "es" ? "Agrega artículos manualmente o finaliza una compra." : "Add items manually or checkout from list."}
+                      </p>
                     </div>
                   );
                 }
@@ -2764,7 +2989,9 @@ export const DeviceEmulator: React.FC = () => {
 
                 return Object.keys(groups).map(catName => (
                   <div key={catName} className="space-y-1.5">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block px-1">{catName}</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block px-1">
+                      {language === "es" && catName === "Fruits" ? "Frutas" : language === "es" && catName === "Vegetables" ? "Verduras" : language === "es" && catName === "Dairy" ? "Lácteos" : language === "es" && catName === "Meat" ? "Carne" : language === "es" && catName === "Pantry" ? "Alacena" : language === "es" && catName === "Bakery" ? "Panadería" : language === "es" && catName === "Snacks" ? "Snacks" : catName}
+                    </span>
                     <div className="space-y-1.5">
                       {groups[catName].map(item => {
                         const daysLeft = item.expiryDate 
@@ -2772,21 +2999,21 @@ export const DeviceEmulator: React.FC = () => {
                           : null;
 
                         let expiryStyle = "text-gray-400";
-                        let expiryLabel = "Good Shelf Life";
+                        let expiryLabel = language === "es" ? "Buen tiempo" : "Good Shelf Life";
                         if (daysLeft !== null) {
-                          const dateStr = new Date(item.expiryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                          const dateStr = new Date(item.expiryDate).toLocaleDateString(language === "es" ? "es-LA" : "en-US", { month: "short", day: "numeric" });
                           if (daysLeft <= 0) {
                             expiryStyle = "text-red-500 font-bold bg-red-100/50 dark:bg-red-950/20 px-1.5 py-0.5 rounded";
-                            expiryLabel = "Expired 🔴";
+                            expiryLabel = language === "es" ? "Vencido 🔴" : "Expired 🔴";
                           } else if (daysLeft <= 3) {
                             expiryStyle = "text-red-500 font-bold bg-red-100/50 dark:bg-red-950/20 px-1.5 py-0.5 rounded";
-                            expiryLabel = `Exp: ${dateStr} 🔴`;
+                            expiryLabel = language === "es" ? `Vence: ${dateStr} 🔴` : `Exp: ${dateStr} 🔴`;
                           } else if (daysLeft <= 7) {
                             expiryStyle = "text-amber-500 font-semibold bg-amber-100/50 dark:bg-amber-950/10 px-1.5 py-0.5 rounded";
-                            expiryLabel = `Exp: ${dateStr} ⚠️`;
+                            expiryLabel = language === "es" ? `Vence: ${dateStr} ⚠️` : `Exp: ${dateStr} ⚠️`;
                           } else {
                             expiryStyle = "text-gray-400";
-                            expiryLabel = `Exp: ${dateStr}`;
+                            expiryLabel = language === "es" ? `Vence: ${dateStr}` : `Exp: ${dateStr}`;
                           }
                         }
 
@@ -2815,7 +3042,9 @@ export const DeviceEmulator: React.FC = () => {
                               </div>
                               <div>
                                 <span className="text-xs font-bold block">{item.name}</span>
-                                <span className="text-[10px] text-gray-400 font-semibold">Qty: {item.quantity} {item.unit || "units"}</span>
+                                <span className="text-[10px] text-gray-400 font-semibold">
+                                  {language === "es" ? "Cant:" : "Qty:"} {item.quantity} {item.unit === "units" || !item.unit ? (language === "es" ? "unidades" : "units") : item.unit}
+                                </span>
                               </div>
                             </div>
 
@@ -2865,12 +3094,12 @@ export const DeviceEmulator: React.FC = () => {
       {activeScreen === "App" && (
         <div className={`absolute bottom-0 inset-x-0 h-[83px] border-t px-6 flex items-center justify-between select-none z-50 backdrop-blur-lg ${isDarkMode ? "bg-zinc-950/75 border-zinc-800/60" : "bg-white/75 border-white/50 shadow-[0_-8px_24px_rgba(0,0,0,0.03)]"}`}>
           {[
-            { id: "Home", label: "Home", icon: House },
-            { id: "Supermarket", label: "Supermarket", icon: ShoppingCart },
-            { id: "Recipes", label: "Recipes", icon: BookOpen },
-            { id: "Magic", label: "AI Chef", icon: Sparkle },
-            { id: "Pantry", label: "Pantry", icon: Package },
-            { id: "Profile", label: "Profile", icon: User },
+            { id: "Home", label: t("tab.home"), icon: House },
+            { id: "Supermarket", label: t("tab.supermarket"), icon: ShoppingCart },
+            { id: "Recipes", label: t("tab.recipes"), icon: BookOpen },
+            { id: "Magic", label: t("tab.magic"), icon: Sparkle },
+            { id: "Pantry", label: t("tab.pantry"), icon: Package },
+            { id: "Profile", label: t("tab.profile"), icon: User },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

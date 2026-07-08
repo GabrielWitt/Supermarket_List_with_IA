@@ -2134,7 +2134,7 @@ import { getAuth } from 'firebase/auth';
 import { GroceryItem, PurchaseHistoryItem } from '../types';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB8z-h5eLOgz5PFIKMssr7-QnQyimIVVNY",
+  apiKey: "YOUR_EXPO_PUBLIC_FIREBASE_API_KEY",
   authDomain: "gen-lang-client-0931318243.firebaseapp.com",
   projectId: "gen-lang-client-0931318243",
   storageBucket: "gen-lang-client-0931318243.firebasestorage.app",
@@ -8750,6 +8750,2353 @@ describe('FreshCart - Business Rules & Calculations', () => {
     expect(names).toContain('Sourdough Bread');
     expect(names).toContain('Fresh Spinach');
   });
+});`
+  },
+  {
+    path: 'screens/RecipeDetailScreen.tsx',
+    name: 'RecipeDetailScreen.tsx',
+    language: 'typescript',
+    code: `/**
+ * FreshCart - Recipe Detail Screen
+ * File: screens/RecipeDetailScreen.tsx
+ */
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Dimensions,
+} from 'react-native';
+import { 
+  CaretLeft, 
+  DotsThree, 
+  Timer, 
+  FireSimple, 
+  Users, 
+  Heart, 
+  ListPlus, 
+  Sparkle 
+} from 'phosphor-react-native';
+
+const { width } = Dimensions.get('window');
+const safeArea = { top: 44, bottom: 34 };
+
+export const RecipeDetailScreen: React.FC<any> = ({ navigation, route }) => {
+  const [selectedTab, setSelectedTab] = useState<'Ingredients' | 'Steps' | 'Info'>('Ingredients');
+  const [servings, setServings] = useState(4);
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Core recipe content to display
+  const recipe = {
+    title: "Honey Sesame Chicken & Broccoli",
+    prepTime: "15m",
+    cookTime: "30m",
+    totalTime: "45 min",
+    servingsDefault: 4,
+    calories: "380 kcal",
+    difficulty: "Medium",
+    tags: ["⏱ 45 min", "👥 4 servings", "🌿 Healthy"],
+    source: "✨ AI Generated",
+    description: "A delicious, sweet, and savory skillet recipe combining tender chicken breast, crisp broccoli florets, and a luscious honey-sesame glaze. Perfect for quick weeknight dinners!",
+    ingredients: [
+      { baseQty: 2, unit: "tbsp", name: "Sesame Oil" },
+      { baseQty: 500, unit: "g", name: "Chicken Breast" },
+      { baseQty: 1, unit: "head", name: "Broccoli" },
+      { baseQty: 3, unit: "tbsp", name: "Soy Sauce" },
+      { baseQty: 2, unit: "tbsp", name: "Honey" },
+      { baseQty: 3, unit: "cloves", name: "Garlic" }
+    ],
+    steps: [
+      "Cut the chicken breast into bite-sized cubes and season lightly with salt and pepper.",
+      "Heat 1 tbsp of sesame oil in a large skillet over medium-high heat. Add chicken and sear until golden and cooked through (6-8 minutes). Transfer chicken to a plate.",
+      "Add the remaining sesame oil to the skillet. Toss in the broccoli florets and minced garlic. Sauté for 3-4 minutes until the broccoli is bright green and tender-crisp.",
+      "In a small bowl, whisk together the soy sauce, honey, and 1 tbsp of water to create the glaze.",
+      "Return the cooked chicken cubes to the skillet with the broccoli.",
+      "Pour the glaze mixture over the top and toss everything together to coat uniformly.",
+      "Simmer for 2 minutes until the sauce bubbles and thickens. Garnish with toasted sesame seeds and serve warm."
+    ],
+    dateSaved: "July 7, 2026"
+  };
+
+  // Adjust ingredient quantity based on serving ratio
+  const getScaledQty = (baseQty: number) => {
+    const ratio = servings / recipe.servingsDefault;
+    const scaled = baseQty * ratio;
+    return Number(scaled.toFixed(1)).toString();
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* Scrollable Container */}
+      <ScrollView 
+        bounces={false} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* HERO HEADER */}
+        <View style={styles.heroContainer}>
+          {/* Simulated LinearGradient Background (#40916C -> #1B4332) */}
+          <View style={styles.gradientMock}>
+            <View style={styles.overlayGradient} />
+          </View>
+
+          {/* OVER HERO TEXT & PILLS */}
+          <View style={styles.heroContent}>
+            <View style={styles.tagsRow}>
+              {recipe.tags.map((tag, idx) => (
+                <View key={idx} style={styles.tagPill}>
+                  <Text style={styles.tagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.heroTitle}>{recipe.title}</Text>
+            <Text style={styles.heroSource}>{recipe.source}</Text>
+          </View>
+        </View>
+
+        {/* WHITE CONTENT LAYER */}
+        <View style={styles.whiteCard}>
+          {/* STATS ROW */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCol}>
+              <Timer size={22} color="#2D6A4F" weight="bold" />
+              <Text style={styles.statVal}>{recipe.prepTime}</Text>
+              <Text style={styles.statLbl}>Prep</Text>
+            </View>
+            <View style={styles.statCol}>
+              <FireSimple size={22} color="#2D6A4F" weight="bold" />
+              <Text style={styles.statVal}>{recipe.cookTime}</Text>
+              <Text style={styles.statLbl}>Cook</Text>
+            </View>
+            <View style={styles.statCol}>
+              <Users size={22} color="#2D6A4F" weight="bold" />
+              <Text style={styles.statVal}>{servings}</Text>
+              <Text style={styles.statLbl}>Serves</Text>
+            </View>
+            <View style={styles.statCol}>
+              <Heart size={22} color="#2D6A4F" weight={isSaved ? "fill" : "bold"} />
+              <Text style={styles.statVal}>{isSaved ? "Saved" : "Save"}</Text>
+              <Text style={styles.statLbl}>Status</Text>
+            </View>
+          </View>
+
+          {/* ACTION BUTTONS ROW */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity 
+              style={[styles.actionBtn, isSaved && styles.actionBtnActive]} 
+              activeOpacity={0.7}
+              onPress={() => setIsSaved(!isSaved)}
+            >
+              <Heart size={16} color={isSaved ? "#2D6A4F" : "#1C1C1E"} weight={isSaved ? "fill" : "regular"} />
+              <Text style={[styles.actionBtnTxt, isSaved && styles.actionBtnTxtActive]}>
+                {isSaved ? "Saved" : "Save"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+              <ListPlus size={16} color="#1C1C1E" />
+              <Text style={styles.actionBtnTxt}>Add to List</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+              <Sparkle size={16} color="#1C1C1E" />
+              <Text style={styles.actionBtnTxt}>Edit with AI</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* TAB BAR */}
+          <View style={styles.tabsContainer}>
+            {(['Ingredients', 'Steps', 'Info'] as const).map((tab) => {
+              const active = selectedTab === tab;
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  style={[styles.tabButton, active && styles.tabButtonActive]}
+                  activeOpacity={0.8}
+                  onPress={() => setSelectedTab(tab)}
+                >
+                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{tab}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* TAB CONTENT PANEL */}
+          <View style={styles.tabContentPanel}>
+            {selectedTab === 'Ingredients' && (
+              <View>
+                {/* Servings Adjuster */}
+                <View style={styles.servingAdjuster}>
+                  <Text style={styles.servingTitle}>Servings</Text>
+                  <View style={styles.stepperContainer}>
+                    <TouchableOpacity 
+                      style={styles.stepBtn} 
+                      onPress={() => setServings(Math.max(1, servings - 1))}
+                    >
+                      <Text style={styles.stepBtnTxt}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.servingsCount}>{servings}</Text>
+                    <TouchableOpacity 
+                      style={styles.stepBtn} 
+                      onPress={() => setServings(servings + 1)}
+                    >
+                      <Text style={styles.stepBtnTxt}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Ingredient List */}
+                <View style={styles.ingredientsList}>
+                  {recipe.ingredients.map((ing, idx) => (
+                    <View key={idx} style={styles.ingredientRow}>
+                      <Text style={styles.bulletPoint}>•</Text>
+                      <Text style={styles.ingredientText}>
+                        <Text style={styles.ingredientQty}>{getScaledQty(ing.baseQty)} </Text>
+                        <Text style={styles.ingredientUnit}>{ing.unit} </Text>
+                        <Text style={styles.ingredientName}>{ing.name}</Text>
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {selectedTab === 'Steps' && (
+              <View style={styles.stepsPanel}>
+                {recipe.steps.map((step, idx) => (
+                  <View key={idx} style={styles.stepRow}>
+                    <View style={styles.stepCircle}>
+                      <Text style={styles.stepNumber}>{idx + 1}</Text>
+                    </View>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {selectedTab === 'Info' && (
+              <View style={styles.infoPanel}>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Description</Text>
+                  <Text style={styles.infoValue}>{recipe.description}</Text>
+                </View>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Difficulty</Text>
+                  <Text style={styles.infoValue}>{recipe.difficulty}</Text>
+                </View>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Calories</Text>
+                  <Text style={styles.infoValue}>{recipe.calories}</Text>
+                </View>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Source</Text>
+                  <Text style={styles.infoValue}>{recipe.source}</Text>
+                </View>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Date Saved</Text>
+                  <Text style={styles.infoValue}>{recipe.dateSaved}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* TRANSPARENT OVERLAID HEADER BUTTONS */}
+      <View style={[styles.headerFloating, { top: safeArea.top }]}>
+        <TouchableOpacity style={styles.headerCircBtn} activeOpacity={0.8}>
+          <CaretLeft size={20} color="#1C1C1E" weight="bold" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.headerCircBtn} activeOpacity={0.8}>
+          <DotsThree size={24} color="#1C1C1E" weight="bold" />
+        </TouchableOpacity>
+      </View>
+
+      {/* STICKY BOTTOM */}
+      <View style={[styles.stickyBottom, { paddingBottom: safeArea.bottom }]}>
+        <TouchableOpacity style={styles.cookCta} activeOpacity={0.85}>
+          <FireSimple size={18} color="#FFFFFF" weight="fill" style={styles.cookIcon} />
+          <Text style={styles.cookCtaTxt}>Cook Recipe →</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+  },
+  scrollContent: {
+    paddingBottom: 110,
+  },
+  heroContainer: {
+    height: 280,
+    position: 'relative',
+    width: width,
+  },
+  gradientMock: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1B4332',
+  },
+  overlayGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 140,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  heroContent: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  tagPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  tagText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '800',
+    marginTop: 8,
+    letterSpacing: -0.5,
+  },
+  heroSource: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 11,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  headerFloating: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    zIndex: 10,
+  },
+  headerCircBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  whiteCard: {
+    marginTop: -20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 12,
+    minHeight: 500,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  statCol: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statVal: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    marginTop: 4,
+  },
+  statLbl: {
+    fontSize: 10,
+    color: '#636366',
+    marginTop: 1,
+    fontWeight: '500',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  actionBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  actionBtnActive: {
+    backgroundColor: '#D8F3DC',
+    borderColor: '#2D6A4F',
+  },
+  actionBtnTxt: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  actionBtnTxtActive: {
+    color: '#2D6A4F',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    height: 44,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingHorizontal: 8,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomColor: '#2D6A4F',
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#636366',
+  },
+  tabTextActive: {
+    color: '#2D6A4F',
+    fontWeight: '800',
+  },
+  tabContentPanel: {
+    paddingVertical: 8,
+  },
+  servingAdjuster: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F8F9FA',
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
+  },
+  servingTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  stepBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepBtnTxt: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2D6A4F',
+  },
+  servingsCount: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1C1C1E',
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  ingredientsList: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+    gap: 10,
+  },
+  ingredientRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  bulletPoint: {
+    color: '#2D6A4F',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginRight: 6,
+    lineHeight: 18,
+  },
+  ingredientText: {
+    fontSize: 13,
+    color: '#1C1C1E',
+    flex: 1,
+    lineHeight: 18,
+  },
+  ingredientQty: {
+    fontWeight: '700',
+    color: '#2D6A4F',
+  },
+  ingredientUnit: {
+    fontWeight: '600',
+    color: '#52B788',
+  },
+  ingredientName: {
+    color: '#1C1C1E',
+  },
+  stepsPanel: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#2D6A4F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  stepNumber: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#1C1C1E',
+  },
+  infoPanel: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 14,
+  },
+  infoField: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+    paddingBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#636366',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 13,
+    color: '#1C1C1E',
+    lineHeight: 18,
+  },
+  stickyBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  cookCta: {
+    backgroundColor: '#2D6A4F',
+    height: 52,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cookIcon: {
+    marginRight: 6,
+  },
+  cookCtaTxt: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+});`
+  },
+  {
+    path: 'screens/EditRecipeScreen.tsx',
+    name: 'EditRecipeScreen.tsx',
+    language: 'typescript',
+    code: `/**
+ * FreshCart - Edit Recipe Screen
+ * File: screens/EditRecipeScreen.tsx
+ */
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  StatusBar,
+} from 'react-native';
+import { 
+  Sparkle, 
+  Trash, 
+  DotsSixVertical, 
+  Minus, 
+  Plus 
+} from 'phosphor-react-native';
+
+export const EditRecipeScreen: React.FC<any> = ({ navigation }) => {
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiResponded, setAiResponded] = useState(false);
+  const [recipeTitle, setRecipeTitle] = useState("Honey Sesame Chicken & Broccoli");
+  const [description, setDescription] = useState(
+    "A delicious, sweet, and savory skillet recipe combining tender chicken breast, crisp broccoli florets, and a luscious honey-sesame glaze."
+  );
+  const [servings, setServings] = useState(4);
+  const [prepTime, setPrepTime] = useState("15");
+  const [cookTime, setCookTime] = useState("30");
+
+  const [ingredients, setIngredients] = useState([
+    { id: '1', name: "Sesame Oil", quantity: "2", unit: "tbsp" },
+    { id: '2', name: "Chicken Breast", quantity: "500", unit: "g" },
+    { id: '3', name: "Broccoli", quantity: "1", unit: "head" },
+    { id: '4', name: "Soy Sauce", quantity: "3", unit: "tbsp" },
+    { id: '5', name: "Honey", quantity: "2", unit: "tbsp" },
+    { id: '6', name: "Garlic", quantity: "3", unit: "cloves" }
+  ]);
+
+  const [steps, setSteps] = useState([
+    "Cut the chicken breast into bite-sized cubes and season lightly.",
+    "Heat 1 tbsp of sesame oil in a large skillet. Add chicken and cook until brown.",
+    "Sauté the broccoli florets and garlic in the skillet with remaining sesame oil.",
+    "Whisk soy sauce, honey, and water in a small bowl for the glaze.",
+    "Return chicken cubes to the skillet with the broccoli.",
+    "Pour glaze over the ingredients and toss evenly to coat.",
+    "Simmer for 2 minutes to thicken sauce. Garnish and serve hot."
+  ]);
+
+  const handleApplyAIChanges = () => {
+    if (!aiPrompt.trim()) return;
+    setAiResponded(true);
+  };
+
+  const handleApplyAllAIProposal = () => {
+    setIngredients(prev => 
+      prev.map(it => it.name === "Soy Sauce" ? { ...it, name: "Tamari (gluten-free)" } : it)
+    );
+    setAiPrompt('');
+    setAiResponded(false);
+  };
+
+  const addIngredientRow = () => {
+    setIngredients(prev => [
+      ...prev,
+      { id: Math.random().toString(), name: '', quantity: '1', unit: 'units' }
+    ]);
+  };
+
+  const removeIngredientRow = (id: string) => {
+    setIngredients(prev => prev.filter(it => it.id !== id));
+  };
+
+  const updateIngredientField = (id: string, field: 'name' | 'quantity' | 'unit', value: string) => {
+    setIngredients(prev => prev.map(it => it.id === id ? { ...it, [field]: value } : it));
+  };
+
+  const addStepRow = () => {
+    setSteps(prev => [...prev, '']);
+  };
+
+  const removeStepRow = (index: number) => {
+    setSteps(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateStepText = (index: number, text: string) => {
+    setSteps(prev => prev.map((s, i) => i === index ? text : s));
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* HEADER BAR */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerBtn}>
+          <Text style={styles.headerCancelTxt}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Edit Recipe</Text>
+        <TouchableOpacity style={styles.headerBtn}>
+          <Text style={styles.headerSaveTxt}>Save</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* AI EDIT CARD */}
+        <View style={styles.aiEditCard}>
+          <View style={styles.aiRowTop}>
+            <Sparkle size={20} color="#2D6A4F" weight="fill" />
+            <Text style={styles.aiCardTitle}>Edit with AI</Text>
+          </View>
+          <Text style={styles.aiCardSub}>Describe what you want to change</Text>
+
+          <TextInput
+            multiline
+            style={styles.aiInput}
+            value={aiPrompt}
+            onChangeText={setAiPrompt}
+            placeholder="e.g. Make this gluten-free, Reduce to 2 servings, Add more spice"
+            placeholderTextColor="#8E8E93"
+          />
+
+          <TouchableOpacity 
+            style={styles.aiApplyBtn} 
+            activeOpacity={0.8}
+            onPress={handleApplyAIChanges}
+          >
+            <Text style={styles.aiApplyBtnTxt}>Apply AI Changes</Text>
+          </TouchableOpacity>
+
+          {aiResponded && (
+            <View style={styles.aiProposalCard}>
+              <Text style={styles.aiProposalHeading}>✨ Proposed changes:</Text>
+              <Text style={styles.proposalItem}>• Soy Sauce → Tamari (gluten-free)</Text>
+              <Text style={styles.proposalItem}>• Flour → Rice Flour</Text>
+              <View style={styles.proposalActions}>
+                <TouchableOpacity 
+                  style={styles.proposalBtnAll}
+                  onPress={handleApplyAllAIProposal}
+                >
+                  <Text style={styles.proposalBtnAllTxt}>Apply All ✓</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.proposalBtnDiscard}
+                  onPress={() => setAiResponded(false)}
+                >
+                  <Text style={styles.proposalBtnDiscardTxt}>Discard ✗</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* OR DIVIDER */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or edit manually</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* SECTION: BASIC INFO */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeading}>Basic Info</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Recipe Title</Text>
+            <TextInput
+              style={styles.textInput}
+              value={recipeTitle}
+              onChangeText={setRecipeTitle}
+              placeholder="e.g. Honey Sesame Chicken"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Description</Text>
+            <TextInput
+              multiline
+              numberOfLines={4}
+              style={[styles.textInput, styles.textArea]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="A short story or background for your recipe..."
+            />
+          </View>
+        </View>
+
+        {/* SECTION: DETAILS */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeading}>Details</Text>
+          
+          <View style={styles.detailsRow}>
+            {/* Servings Stepper */}
+            <View style={styles.detailCol}>
+              <Text style={styles.inputLabel}>Servings</Text>
+              <View style={styles.detailsStepper}>
+                <TouchableOpacity 
+                  style={styles.stepperSubBtn} 
+                  onPress={() => setServings(Math.max(1, servings - 1))}
+                >
+                  <Minus size={14} color="#2D6A4F" weight="bold" />
+                </TouchableOpacity>
+                <Text style={styles.stepperVal}>{servings}</Text>
+                <TouchableOpacity 
+                  style={styles.stepperSubBtn} 
+                  onPress={() => setServings(servings + 1)}
+                >
+                  <Plus size={14} color="#2D6A4F" weight="bold" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Prep Time */}
+            <View style={styles.detailCol}>
+              <Text style={styles.inputLabel}>Prep (min)</Text>
+              <View style={styles.detailsTimeInputRow}>
+                <TextInput
+                  style={styles.timeInput}
+                  value={prepTime}
+                  onChangeText={setPrepTime}
+                  keyboardType="number-pad"
+                />
+                <Text style={styles.timeUnit}>min</Text>
+              </View>
+            </View>
+
+            {/* Cook Time */}
+            <View style={styles.detailCol}>
+              <Text style={styles.inputLabel}>Cook (min)</Text>
+              <View style={styles.detailsTimeInputRow}>
+                <TextInput
+                  style={styles.timeInput}
+                  value={cookTime}
+                  onChangeText={setCookTime}
+                  keyboardType="number-pad"
+                />
+                <Text style={styles.timeUnit}>min</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* SECTION: INGREDIENTS */}
+        <View style={styles.section}>
+          <View style={styles.sectionLabelRow}>
+            <Text style={styles.sectionHeading}>Ingredients ({ingredients.length})</Text>
+            <TouchableOpacity onPress={addIngredientRow}>
+              <Text style={styles.addBtnText}>+ Add</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.ingredientList}>
+            {ingredients.map((ing) => (
+              <View key={ing.id} style={styles.ingRow}>
+                <DotsSixVertical size={16} color="#C7C7CC" style={styles.dragHandle} />
+                
+                <TextInput
+                  style={[styles.ingInput, styles.flexFill]}
+                  value={ing.name}
+                  onChangeText={(val) => updateIngredientField(ing.id, 'name', val)}
+                  placeholder="Ingredient"
+                />
+
+                <TextInput
+                  style={[styles.ingInput, styles.qtyInput]}
+                  value={ing.quantity}
+                  onChangeText={(val) => updateIngredientField(ing.id, 'quantity', val)}
+                  placeholder="Qty"
+                  keyboardType="numeric"
+                />
+
+                <TextInput
+                  style={[styles.ingInput, styles.unitInput]}
+                  value={ing.unit}
+                  onChangeText={(val) => updateIngredientField(ing.id, 'unit', val)}
+                  placeholder="Unit"
+                />
+
+                <TouchableOpacity 
+                  onPress={() => removeIngredientRow(ing.id)}
+                  style={styles.trashBtn}
+                >
+                  <Trash size={16} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* SECTION: STEPS */}
+        <View style={styles.section}>
+          <View style={styles.sectionLabelRow}>
+            <Text style={styles.sectionHeading}>Steps ({steps.length})</Text>
+            <TouchableOpacity onPress={addStepRow}>
+              <Text style={styles.addBtnText}>+ Add Step</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.stepsList}>
+            {steps.map((step, idx) => (
+              <View key={idx} style={styles.stepRow}>
+                <View style={styles.stepCircle}>
+                  <Text style={styles.stepNum}>{idx + 1}</Text>
+                </View>
+
+                <TextInput
+                  multiline
+                  style={[styles.stepInput, styles.flexFill]}
+                  value={step}
+                  onChangeText={(val) => updateStepText(idx, val)}
+                  placeholder="Describe this instruction step..."
+                />
+
+                <TouchableOpacity 
+                  onPress={() => removeStepRow(idx)}
+                  style={styles.trashBtn}
+                >
+                  <Trash size={16} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* SAVE BUTTON */}
+        <TouchableOpacity style={styles.saveCta} activeOpacity={0.85}>
+          <Text style={styles.saveCtaTxt}>Save Recipe</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1C1C1E',
+  },
+  headerBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  headerCancelTxt: {
+    fontSize: 14,
+    color: '#8E8E93',
+    fontWeight: '600',
+  },
+  headerSaveTxt: {
+    fontSize: 14,
+    color: '#2D6A4F',
+    fontWeight: '800',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 60,
+  },
+  aiEditCard: {
+    backgroundColor: '#D8F3DC',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+  },
+  aiRowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1C1C1E',
+  },
+  aiCardSub: {
+    fontSize: 11,
+    color: '#636366',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  aiInput: {
+    marginTop: 12,
+    height: 80,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 12,
+    color: '#1C1C1E',
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: 'rgba(45, 106, 79, 0.1)',
+  },
+  aiApplyBtn: {
+    borderWidth: 1.5,
+    borderColor: '#2D6A4F',
+    backgroundColor: 'transparent',
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  aiApplyBtnTxt: {
+    color: '#2D6A4F',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  aiProposalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1.5,
+    borderColor: '#2D6A4F',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+  },
+  aiProposalHeading: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2D6A4F',
+    marginBottom: 4,
+  },
+  proposalItem: {
+    fontSize: 11,
+    color: '#1C1C1E',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  proposalActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  proposalBtnAll: {
+    flex: 1,
+    height: 36,
+    backgroundColor: '#2D6A4F',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  proposalBtnAllTxt: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  proposalBtnDiscard: {
+    flex: 1,
+    height: 36,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  proposalBtnDiscardTxt: {
+    color: '#FF3B30',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 12,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E5EA',
+  },
+  dividerText: {
+    fontSize: 11,
+    color: '#8E8E93',
+    fontWeight: '600',
+  },
+  section: {
+    marginTop: 20,
+  },
+  sectionHeading: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1C1C1E',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 8,
+    marginBottom: 12,
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#636366',
+    marginBottom: 6,
+  },
+  textInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    height: 44,
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: '#1C1C1E',
+  },
+  textArea: {
+    height: 96,
+    paddingVertical: 12,
+    textAlignVertical: 'top',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  detailCol: {
+    flex: 1,
+  },
+  detailsStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    height: 44,
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+  },
+  stepperSubBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperVal: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1C1C1E',
+  },
+  detailsTimeInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    height: 44,
+    paddingHorizontal: 10,
+  },
+  timeInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1C1C1E',
+    textAlign: 'center',
+    fontWeight: '700',
+    height: '100%',
+  },
+  timeUnit: {
+    fontSize: 11,
+    color: '#636366',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  sectionLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 8,
+    marginBottom: 12,
+  },
+  addBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2D6A4F',
+  },
+  ingredientList: {
+    gap: 10,
+  },
+  ingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+    paddingBottom: 8,
+    gap: 6,
+  },
+  dragHandle: {
+    marginRight: 2,
+  },
+  ingInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    height: 38,
+    paddingHorizontal: 10,
+    fontSize: 12,
+    color: '#1C1C1E',
+  },
+  flexFill: {
+    flex: 1,
+  },
+  qtyInput: {
+    width: 58,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  unitInput: {
+    width: 68,
+    textAlign: 'center',
+  },
+  trashBtn: {
+    width: 30,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepsList: {
+    gap: 12,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+    paddingBottom: 10,
+    gap: 8,
+  },
+  stepCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#2D6A4F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  stepNum: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  stepInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12,
+    color: '#1C1C1E',
+    minHeight: 52,
+    textAlignVertical: 'top',
+  },
+  saveCta: {
+    backgroundColor: '#2D6A4F',
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 32,
+    marginBottom: 40,
+  },
+  saveCtaTxt: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+});`
+  },
+  {
+    path: 'screens/CookModeScreen.tsx',
+    name: 'CookModeScreen.tsx',
+    language: 'typescript',
+    code: `/**
+ * FreshCart - Cook Mode Full Screen
+ * File: screens/CookModeScreen.tsx
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  StatusBar,
+} from 'react-native';
+import { 
+  X, 
+  Pause, 
+  Play, 
+  ArrowClockwise, 
+  ArrowLeft, 
+  ArrowRight,
+} from 'phosphor-react-native';
+
+const safeArea = { top: 44, bottom: 34 };
+
+export const CookModeScreen: React.FC<any> = ({ navigation }) => {
+  const steps = [
+    "Cut the chicken breast into bite-sized cubes and season lightly with salt and pepper.",
+    "Heat 1 tbsp of sesame oil in a large skillet over medium-high heat. Add chicken and sear until cooked through (8 minutes).",
+    "Sauté the broccoli florets and minced garlic in the skillet with the remaining sesame oil. (Set timer for 4 minutes)",
+    "In a small bowl, whisk together the soy sauce, honey, and water to create the glaze.",
+    "Return the cooked chicken cubes to the skillet with the broccoli.",
+    "Pour glaze over the ingredients and toss evenly to coat uniformly.",
+    "Simmer for 2 minutes to thicken sauce. Garnish with toasted sesame seeds and serve warm."
+  ];
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [timerSeconds, setTimerSeconds] = useState(240);
+  const [timerRunning, setTimerRunning] = useState(false);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (timerRunning) {
+      interval = setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning]);
+
+  const formatTime = (totalSecs: number) => {
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    return \`\${mins.toString().padStart(2, '0')}:\${secs.toString().padStart(2, '0')}\`;
+  };
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+      if (currentStep + 1 === 2) {
+        setTimerSeconds(240);
+      } else if (currentStep + 1 === 6) {
+        setTimerSeconds(120);
+      } else {
+        setTimerSeconds(0);
+      }
+      setTimerRunning(false);
+    } else {
+      Alert.alert(
+        "Done Cooking! 🎉",
+        "Would you like to update your pantry to account for the used ingredients?",
+        [
+          { text: "Update Pantry", onPress: () => navigation.goBack() },
+          { text: "Not now", onPress: () => navigation.goBack() }
+        ]
+      );
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      setTimerRunning(false);
+    }
+  };
+
+  const hasTimer = currentStep === 2 || currentStep === 6;
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* TOP HEADER */}
+      <View style={[styles.headerRow, { paddingTop: safeArea.top + 8 }]}>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle} numberOfLines={1}>Honey Sesame Chicken</Text>
+        </View>
+        <TouchableOpacity style={styles.closeBtn} activeOpacity={0.8}>
+          <X size={20} color="#FFFFFF" weight="bold" />
+        </TouchableOpacity>
+      </View>
+
+      {/* PROGRESS TRACKER */}
+      <View style={styles.progressContainer}>
+        <Text style={styles.progressLabel}>Step {currentStep + 1} of {steps.length}</Text>
+        <View style={styles.progressSegmentsRow}>
+          {steps.map((_, index) => {
+            const completed = index <= currentStep;
+            return (
+              <View 
+                key={index} 
+                style={[
+                  styles.progressSegment, 
+                  completed ? styles.segmentCompleted : styles.segmentUpcoming
+                ]} 
+              />
+            );
+          })}
+        </View>
+      </View>
+
+      {/* CENTER SECTION */}
+      <View style={styles.centerSection}>
+        <View style={styles.stepNumCircle}>
+          <Text style={styles.stepCircleTxt}>{currentStep + 1}</Text>
+        </View>
+
+        <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepScrollContent}>
+          <Text style={styles.stepText}>{steps[currentStep]}</Text>
+        </ScrollView>
+
+        {hasTimer && timerSeconds > 0 && (
+          <View style={styles.timerSection}>
+            <View style={styles.timerWrapper}>
+              <Text style={styles.countdownText}>{formatTime(timerSeconds)}</Text>
+            </View>
+            <View style={styles.timerControlRow}>
+              <TouchableOpacity 
+                style={styles.timerControlBtn}
+                onPress={() => setTimerRunning(!timerRunning)}
+              >
+                {timerRunning ? (
+                  <Pause size={18} color="#FFFFFF" weight="fill" />
+                ) : (
+                  <Play size={18} color="#FFFFFF" weight="fill" />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.timerControlBtn}
+                onPress={() => {
+                  setTimerSeconds(currentStep === 2 ? 240 : 120);
+                  setTimerRunning(false);
+                }}
+              >
+                <ArrowClockwise size={18} color="#FFFFFF" weight="bold" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* BOTTOM BUTTONS BAR */}
+      <View style={[styles.bottomBar, { paddingBottom: safeArea.bottom + 16 }]}>
+        <TouchableOpacity 
+          style={[styles.navBtn, styles.navBtnPrev, currentStep === 0 && styles.navBtnDisabled]}
+          disabled={currentStep === 0}
+          onPress={handlePrev}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={16} color="#FFFFFF" weight="bold" style={styles.navBtnIcon} />
+          <Text style={styles.navBtnPrevText}>Previous</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.navBtn, styles.navBtnNext]}
+          onPress={handleNext}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.navBtnNextText}>
+            {currentStep === steps.length - 1 ? "Done Cooking! 🎉" : "Next"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  headerTitleWrap: {
+    flex: 1,
+    marginRight: 16,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressContainer: {
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  progressLabel: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
+  progressSegmentsRow: {
+    flexDirection: 'row',
+    height: 4,
+    marginTop: 6,
+    gap: 4,
+  },
+  progressSegment: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+  },
+  segmentCompleted: {
+    backgroundColor: '#52B788',
+  },
+  segmentUpcoming: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  centerSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  stepNumCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: '#52B788',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCircleTxt: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '800',
+  },
+  stepScroll: {
+    flexMaxHeight: 120,
+    marginTop: 24,
+    width: '100%',
+  },
+  stepScrollContent: {
+    alignItems: 'center',
+  },
+  stepText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  timerSection: {
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  timerWrapper: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    borderWidth: 3,
+    borderColor: 'rgba(82, 183, 136, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  countdownText: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '800',
+    fontFamily: 'monospace',
+  },
+  timerControlRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 16,
+  },
+  timerControlBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  navBtn: {
+    height: 52,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navBtnPrev: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'transparent',
+  },
+  navBtnDisabled: {
+    opacity: 0.3,
+  },
+  navBtnPrevText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  navBtnIcon: {
+    marginRight: 6,
+  },
+  navBtnNext: {
+    flex: 2,
+    backgroundColor: '#2D6A4F',
+  },
+  navBtnNextText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+});`
+  },
+  {
+    path: 'screens/AddRecipeScreen.tsx',
+    name: 'AddRecipeScreen.tsx',
+    language: 'typescript',
+    code: `/**
+ * FreshCart - Add Recipe Screen
+ * File: screens/AddRecipeScreen.tsx
+ */
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+} from 'react-native';
+import { 
+  Camera, 
+  Trash, 
+  Minus, 
+  Plus, 
+  X 
+} from 'phosphor-react-native';
+
+export const AddRecipeScreen: React.FC<any> = ({ navigation }) => {
+  const [photoSelected, setPhotoSelected] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [servings, setServings] = useState(2);
+  const [prepTime, setPrepTime] = useState('15');
+  const [cookTime, setCookTime] = useState('30');
+  
+  const [tagInput, setTagInput] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>(["Quick", "Healthy"]);
+  
+  const [ingredients, setIngredients] = useState([
+    { id: '1', name: '', quantity: '', unit: 'units' },
+    { id: '2', name: '', quantity: '', unit: 'units' },
+    { id: '3', name: '', quantity: '', unit: 'units' }
+  ]);
+
+  const [steps, setSteps] = useState([
+    "Describe step 1..."
+  ]);
+
+  const tagSuggestions = ["Vegetarian", "Quick", "Healthy", "Breakfast", "Italian"];
+
+  const handleSelectPhoto = () => {
+    setPhotoSelected(true);
+  };
+
+  const handleAddTag = (tag: string) => {
+    const trimmed = tag.trim();
+    if (trimmed && !selectedTags.includes(trimmed)) {
+      setSelectedTags([...selectedTags, trimmed]);
+    }
+    setTagInput('');
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setSelectedTags(selectedTags.filter(t => t !== tag));
+  };
+
+  const addIngredientRow = () => {
+    setIngredients([
+      ...ingredients,
+      { id: Math.random().toString(), name: '', quantity: '', unit: 'units' }
+    ]);
+  };
+
+  const removeIngredientRow = (id: string) => {
+    setIngredients(ingredients.filter(it => it.id !== id));
+  };
+
+  const cycleUnit = (index: number) => {
+    const units = ['units', 'g', 'kg', 'ml', 'L', 'tbsp', 'tsp', 'cups'];
+    setIngredients(prev => prev.map((it, i) => {
+      if (i === index) {
+        const currentIdx = units.indexOf(it.unit);
+        const nextIdx = (currentIdx + 1) % units.length;
+        return { ...it, unit: units[nextIdx] };
+      }
+      return it;
+    }));
+  };
+
+  const updateIngredientField = (id: string, field: 'name' | 'quantity', value: string) => {
+    setIngredients(prev => prev.map(it => it.id === id ? { ...it, [field]: value } : it));
+  };
+
+  const addStepRow = () => {
+    setSteps([...steps, ""]);
+  };
+
+  const removeStepRow = (index: number) => {
+    setSteps(steps.filter((_, i) => i !== index));
+  };
+
+  const updateStepText = (index: number, text: string) => {
+    setSteps(prev => prev.map((s, i) => i === index ? text : s));
+  };
+
+  const isSaveDisabled = !title.trim();
+
+  return (
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* HEADER BAR */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerBtn}>
+          <Text style={styles.headerCancelTxt}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>New Recipe</Text>
+        <TouchableOpacity 
+          style={styles.headerBtn}
+          disabled={isSaveDisabled}
+        >
+          <Text style={[styles.headerSaveTxt, isSaveDisabled && styles.headerSaveDisabled]}>Save</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* PHOTO AREA */}
+        <TouchableOpacity 
+          style={[styles.photoArea, photoSelected && styles.photoAreaSelected]} 
+          onPress={handleSelectPhoto}
+          activeOpacity={0.8}
+        >
+          {photoSelected ? (
+            <View style={styles.photoContainer}>
+              <View style={styles.photoPlaceholderFill}>
+                <Text style={styles.photoLabelActive}>🍯 Honey Sesame Chicken Mock Image</Text>
+              </View>
+              <View style={styles.photoChangeOverlay}>
+                <Text style={styles.photoChangeText}>Change</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <Camera size={36} color="#C7C7CC" />
+              <Text style={styles.photoTitle}>Add Photo</Text>
+              <Text style={styles.photoSubtitle}>Optional</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* BASIC INFO */}
+        <View style={styles.section}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Recipe Title *</Text>
+            <TextInput
+              style={styles.textInput}
+              value={title}
+              onChangeText={setTitle}
+              placeholder="e.g. Chocolate Chip Cookies"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Description</Text>
+            <TextInput
+              multiline
+              numberOfLines={3}
+              style={[styles.textInput, styles.textArea]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="A brief description of the dish..."
+            />
+          </View>
+        </View>
+
+        {/* DETAILS ROW */}
+        <View style={styles.detailsRow}>
+          <View style={styles.detailCol}>
+            <Text style={styles.inputLabel}>Servings</Text>
+            <View style={styles.stepperRow}>
+              <TouchableOpacity 
+                style={styles.stepperBtn}
+                onPress={() => setServings(Math.max(1, servings - 1))}
+              >
+                <Minus size={12} color="#2D6A4F" weight="bold" />
+              </TouchableOpacity>
+              <Text style={styles.stepperVal}>{servings}</Text>
+              <TouchableOpacity 
+                style={styles.stepperBtn}
+                onPress={() => setServings(servings + 1)}
+              >
+                <Plus size={12} color="#2D6A4F" weight="bold" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.detailCol}>
+            <Text style={styles.inputLabel}>Prep (min)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={prepTime}
+              onChangeText={setPrepTime}
+              keyboardType="number-pad"
+              placeholder="15"
+            />
+          </View>
+
+          <View style={styles.detailCol}>
+            <Text style={styles.inputLabel}>Cook (min)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={cookTime}
+              onChangeText={setCookTime}
+              keyboardType="number-pad"
+              placeholder="30"
+            />
+          </View>
+        </View>
+
+        {/* TAGS */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeading}>Tags</Text>
+          
+          <View style={styles.chipsRow}>
+            {selectedTags.map(tag => (
+              <View key={tag} style={styles.chipPill}>
+                <Text style={styles.chipText}>{tag}</Text>
+                <TouchableOpacity onPress={() => handleRemoveTag(tag)} style={styles.chipCloseBtn}>
+                  <X size={10} color="#FFFFFF" weight="bold" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+
+          <TextInput
+            style={styles.textInput}
+            value={tagInput}
+            onChangeText={setTagInput}
+            onSubmitEditing={() => handleAddTag(tagInput)}
+            placeholder="Type tag & press enter"
+          />
+
+          <View style={styles.tagSuggestionsRow}>
+            {tagSuggestions.map(tag => (
+              <TouchableOpacity 
+                key={tag} 
+                style={styles.suggestionPill}
+                onPress={() => handleAddTag(tag)}
+              >
+                <Text style={styles.suggestionText}>{tag}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* INGREDIENTS */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeading}>Ingredients</Text>
+            <TouchableOpacity onPress={addIngredientRow}>
+              <Text style={styles.sectionAddText}>+ Add</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.listContainer}>
+            {ingredients.map((ing, idx) => (
+              <View key={ing.id} style={styles.listItemRow}>
+                <TextInput
+                  style={[styles.itemInput, styles.flexFill]}
+                  value={ing.name}
+                  onChangeText={(val) => updateIngredientField(ing.id, 'name', val)}
+                  placeholder="Ingredient"
+                />
+
+                <TextInput
+                  style={[styles.itemInput, styles.qtyInput]}
+                  value={ing.quantity}
+                  onChangeText={(val) => updateIngredientField(ing.id, 'quantity', val)}
+                  placeholder="1"
+                  keyboardType="numeric"
+                />
+
+                <TouchableOpacity 
+                  onPress={() => cycleUnit(idx)}
+                  style={styles.unitBtn}
+                >
+                  <Text style={styles.unitBtnTxt}>{ing.unit}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  onPress={() => removeIngredientRow(ing.id)}
+                  style={styles.trashBtn}
+                >
+                  <Trash size={16} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+          
+          <TouchableOpacity onPress={addIngredientRow} style={styles.addSecondaryBtn}>
+            <Text style={styles.addSecondaryBtnTxt}>+ Add Ingredient</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* STEPS */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeading}>Steps</Text>
+            <TouchableOpacity onPress={addStepRow}>
+              <Text style={styles.sectionAddText}>+ Add Step</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.listContainer}>
+            {steps.map((step, idx) => (
+              <View key={idx} style={styles.stepRow}>
+                <View style={styles.stepCircle}>
+                  <Text style={styles.stepCircleText}>{idx + 1}</Text>
+                </View>
+
+                <TextInput
+                  multiline
+                  style={[styles.stepInput, styles.flexFill]}
+                  value={step}
+                  onChangeText={(val) => updateStepText(idx, val)}
+                  placeholder="Describe this step..."
+                />
+
+                <TouchableOpacity 
+                  onPress={() => removeStepRow(idx)}
+                  style={styles.trashBtn}
+                >
+                  <Trash size={16} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* SAVE CTA BUTTON */}
+        <TouchableOpacity 
+          style={[styles.saveBtnCta, isSaveDisabled && styles.saveBtnCtaDisabled]}
+          disabled={isSaveDisabled}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.saveBtnCtaTxt}>Save Recipe</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1C1C1E',
+  },
+  headerBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  headerCancelTxt: {
+    fontSize: 14,
+    color: '#8E8E93',
+    fontWeight: '600',
+  },
+  headerSaveTxt: {
+    fontSize: 14,
+    color: '#2D6A4F',
+    fontWeight: '800',
+  },
+  headerSaveDisabled: {
+    color: '#C7C7CC',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 60,
+  },
+  photoArea: {
+    height: 200,
+    borderWidth: 1.5,
+    borderColor: '#C7C7CC',
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    backgroundColor: '#F2F2F7',
+    overflow: 'hidden',
+  },
+  photoAreaSelected: {
+    borderStyle: 'solid',
+    borderColor: '#2D6A4F',
+  },
+  photoPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#8E8E93',
+    marginTop: 8,
+  },
+  photoSubtitle: {
+    fontSize: 11,
+    color: '#C7C7CC',
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  photoContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  photoPlaceholderFill: {
+    flex: 1,
+    backgroundColor: '#1B4332',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoLabelActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  photoChangeOverlay: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  photoChangeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  section: {
+    marginTop: 24,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionHeading: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1C1C1E',
+  },
+  sectionAddText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2D6A4F',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#636366',
+    marginBottom: 6,
+  },
+  textInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    height: 44,
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: '#1C1C1E',
+  },
+  textArea: {
+    height: 80,
+    paddingVertical: 12,
+    textAlignVertical: 'top',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  detailCol: {
+    flex: 1,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    height: 44,
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+  },
+  stepperBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperVal: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1C1C1E',
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  chipPill: {
+    backgroundColor: '#2D6A4F',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 10,
+    paddingRight: 6,
+    paddingVertical: 5,
+    borderRadius: 12,
+    gap: 4,
+  },
+  chipText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  chipCloseBtn: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tagSuggestionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  suggestionPill: {
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  suggestionText: {
+    color: '#52B788',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  listContainer: {
+    gap: 8,
+  },
+  listItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  itemInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    height: 38,
+    paddingHorizontal: 10,
+    fontSize: 12,
+    color: '#1C1C1E',
+  },
+  qtyInput: {
+    width: 50,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  unitBtn: {
+    width: 50,
+    height: 38,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unitBtnTxt: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2D6A4F',
+  },
+  trashBtn: {
+    width: 30,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addSecondaryBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  addSecondaryBtnTxt: {
+    color: '#2D6A4F',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  stepCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#2D6A4F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  stepCircleText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  stepInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12,
+    color: '#1C1C1E',
+    minHeight: 52,
+    textAlignVertical: 'top',
+  },
+  saveBtnCta: {
+    backgroundColor: '#2D6A4F',
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 32,
+    marginBottom: 48,
+  },
+  saveBtnCtaDisabled: {
+    backgroundColor: '#E5E5EA',
+  },
+  saveBtnCtaTxt: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
 });`
   }
 ];

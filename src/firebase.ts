@@ -3,18 +3,20 @@
  * File: src/firebase.ts
  */
 
+/// <reference types="vite/client" />
+
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import firebaseConfigData from '../firebase-applet-config.json';
 
 const firebaseConfig = {
-  apiKey: firebaseConfigData.apiKey,
-  authDomain: firebaseConfigData.authDomain,
-  projectId: firebaseConfigData.projectId,
-  storageBucket: firebaseConfigData.storageBucket,
-  messagingSenderId: firebaseConfigData.messagingSenderId,
-  appId: firebaseConfigData.appId
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfigData.apiKey,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfigData.authDomain,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfigData.projectId,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfigData.storageBucket,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfigData.messagingSenderId,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfigData.appId
 };
 
 // Initialize Firebase

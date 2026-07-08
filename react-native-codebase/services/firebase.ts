@@ -23,7 +23,7 @@ import { GroceryItem, PurchaseHistoryItem, UserStats } from '../types';
 
 // Firebase configuration using environment variables or fallback values
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyB8z-h5eLOgz5PFIKMssr7-QnQyimIVVNY",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "YOUR_EXPO_PUBLIC_FIREBASE_API_KEY",
   authDomain: "gen-lang-client-0931318243.firebaseapp.com",
   projectId: "gen-lang-client-0931318243",
   storageBucket: "gen-lang-client-0931318243.firebasestorage.app",
