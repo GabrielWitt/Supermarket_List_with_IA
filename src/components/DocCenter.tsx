@@ -80,8 +80,8 @@ export const DocCenter: React.FC = () => {
           <span>Execution Commands</span>
         </div>
         <p className="text-[10px] leading-relaxed">
-          # Install production expo dependencies<br />
-          <span className="text-[#2D6A4F]">npm install @react-native-safe-area-context phosphor-react-native zustand firebase</span>
+          # Install production expo SDK 57 compatible dependencies & peer dependencies<br />
+          <span className="text-[#2D6A4F]">npx expo install react-native-gesture-handler react-native-svg @react-native-async-storage/async-storage @react-native-safe-area-context zustand firebase lucide-react-native</span>
         </p>
         <p className="text-[10px] leading-relaxed">
           # Run the unit test suite verifying calculations<br />
