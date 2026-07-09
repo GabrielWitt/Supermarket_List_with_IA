@@ -1,7 +1,7 @@
 import React from "react";
 import { ChevronLeft, Pencil, Minus, Plus, Clock, Flame, Award, Sparkles, ChefHat } from "lucide-react";
-import { Recipe } from "./DeviceEmulator";
-import { useLanguage } from "../lib/LanguageContext";
+import { Recipe } from "../DeviceEmulator";
+import { useLanguage } from "../../lib/LanguageContext";
 
 interface RecipeDetailScreenProps {
   recipe: Recipe;

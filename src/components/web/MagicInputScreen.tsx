@@ -9,7 +9,7 @@ import {
   Sparkles, 
   ChefHat 
 } from "lucide-react";
-import { useLanguage } from "../lib/LanguageContext";
+import { useLanguage } from "../../lib/LanguageContext";
 
 interface MagicInputScreenProps {
   pantryItems: any[];

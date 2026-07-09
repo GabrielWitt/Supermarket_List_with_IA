@@ -6,7 +6,7 @@ import {
   Heart, 
   Sparkle 
 } from "lucide-react";
-import { useLanguage } from "../lib/LanguageContext";
+import { useLanguage } from "../../lib/LanguageContext";
 
 interface RecipeResult {
   id: string;

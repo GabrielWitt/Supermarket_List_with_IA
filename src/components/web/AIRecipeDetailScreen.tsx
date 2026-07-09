@@ -12,8 +12,8 @@ import {
   Heart, 
   Check 
 } from "lucide-react";
-import { Recipe } from "./DeviceEmulator";
-import { useLanguage } from "../lib/LanguageContext";
+import { Recipe } from "../DeviceEmulator";
+import { useLanguage } from "../../lib/LanguageContext";
 
 interface AIRecipeDetailScreenProps {
   recipeId: string;

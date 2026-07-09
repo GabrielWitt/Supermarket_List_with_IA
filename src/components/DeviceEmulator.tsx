@@ -45,13 +45,13 @@ import {
   Package,
   Lightbulb
 } from "lucide-react";
-import { RecipeDetailScreen } from "./RecipeDetailScreen";
-import { EditRecipeScreen } from "./EditRecipeScreen";
-import { CookModeScreen } from "./CookModeScreen";
-import { AddRecipeScreen } from "./AddRecipeScreen";
-import { MagicInputScreen } from "./MagicInputScreen";
-import { MagicResultsScreen } from "./MagicResultsScreen";
-import { AIRecipeDetailScreen } from "./AIRecipeDetailScreen";
+import { RecipeDetailScreen } from "./web/RecipeDetailScreen";
+import { EditRecipeScreen } from "./web/EditRecipeScreen";
+import { CookModeScreen } from "./web/CookModeScreen";
+import { AddRecipeScreen } from "./web/AddRecipeScreen";
+import { MagicInputScreen } from "./web/MagicInputScreen";
+import { MagicResultsScreen } from "./web/MagicResultsScreen";
+import { AIRecipeDetailScreen } from "./web/AIRecipeDetailScreen";
 import { useLanguage } from "../lib/LanguageContext";
 import { 
   auth, 
@@ -803,22 +803,10 @@ export const DeviceEmulator: React.FC = () => {
     .reduce((sum, it) => sum + (it.quantity * it.price), 0);
 
   return (
-    <div className={`relative w-[375px] h-[780px] rounded-[48px] border-[12px] border-gray-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden transition-all duration-300 ${isDarkMode ? "bg-[#121214]/85 text-white border-zinc-800" : "bg-white/75 text-gray-900 border-gray-900"} backdrop-blur-2xl`} id="mobile-device-simulator">
+    <div className={`relative w-full min-h-screen md:max-w-md md:h-[88vh] md:my-[6vh] md:rounded-[36px] md:border-8 md:border-zinc-800/90 md:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden transition-all duration-300 ${isDarkMode ? "bg-[#121214] text-white border-zinc-800" : "bg-white text-gray-900 border-gray-200"} backdrop-blur-2xl`} id="mobile-device-simulator">
       {/* simulated splash screen container */}
       {showSplash && (
         <div className="absolute inset-0 bg-[#2D6A4F] z-[100] flex flex-col items-center justify-center animate-fade-in text-white select-none">
-          {/* iOS Camera Notch and Status Bar over splash bg */}
-          <div className="absolute top-0 inset-x-0 h-10 bg-transparent flex items-center justify-between px-8 text-[11px] font-semibold text-gray-200">
-            <span>13:00</span>
-            <div className="w-[120px] h-[24px] bg-black rounded-b-2xl absolute left-1/2 -translate-x-1/2 top-0 flex items-center justify-center">
-              <div className="w-2.5 h-2.5 bg-[#1C1C1E] rounded-full absolute right-8"></div>
-            </div>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-3 h-2 bg-white rounded-sm"></span>
-              <span className="w-2 h-2 border border-white rounded-full"></span>
-            </div>
-          </div>
-
           <div className="flex flex-col items-center text-center">
             <span className="text-[72px]" role="img" aria-label="Shopping Cart">🛒</span>
             <h1 className="text-[34px] font-bold text-white mt-4 tracking-tight leading-none">FreshCart</h1>
@@ -831,20 +819,8 @@ export const DeviceEmulator: React.FC = () => {
         </div>
       )}
 
-      {/* iOS Camera Notch and Status Bar */}
-      <div className="absolute top-0 inset-x-0 h-10 bg-transparent flex items-center justify-between px-8 z-50 text-[11px] font-semibold select-none">
-        <span className={`${isDarkMode ? "text-gray-300" : "text-gray-800"}`}>13:00</span>
-        <div className="w-[120px] h-[24px] bg-black rounded-b-2xl absolute left-1/2 -translate-x-1/2 top-0 flex items-center justify-center">
-          <div className="w-2.5 h-2.5 bg-[#1C1C1E] rounded-full absolute right-8"></div>
-        </div>
-        <div className="flex items-center space-x-1.5">
-          <span className="w-3 h-2 bg-green-500 rounded-sm"></span>
-          <span className="w-2 h-2 border border-current rounded-full"></span>
-        </div>
-      </div>
-
       {/* Screen Layout: Main Content Area */}
-      <div className={`flex-1 pt-10 overflow-y-auto ${activeScreen === "App" ? "pb-[83px]" : "pb-4"}`}>
+      <div className={`flex-1 pt-4 overflow-y-auto ${activeScreen === "App" ? "pb-[83px]" : "pb-4"}`}>
         
         {/* ==================== LOGIN SCREEN ==================== */}
         {activeScreen === "Login" && (

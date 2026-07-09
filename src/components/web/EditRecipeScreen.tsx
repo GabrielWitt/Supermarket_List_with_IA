@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronLeft, Plus, Trash2, Sparkles, Save, X } from "lucide-react";
-import { Recipe } from "./DeviceEmulator";
-import { useLanguage } from "../lib/LanguageContext";
+import { Recipe } from "../DeviceEmulator";
+import { useLanguage } from "../../lib/LanguageContext";
 
 interface EditRecipeScreenProps {
   recipe: Recipe;
