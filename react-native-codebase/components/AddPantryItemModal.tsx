@@ -18,9 +18,9 @@ import {
   Platform,
   KeyboardAvoidingView,
   Switch,
-  Modal
+  Modal,
+  Pressable
 } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
 import { X, MagnifyingGlass, CalendarBlank } from 'phosphor-react-native';
 import { PantryCategory, PantryItem } from '../screens/PantryScreen';
 

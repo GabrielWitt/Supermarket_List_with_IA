@@ -17,9 +17,9 @@ import {
   Animated,
   Dimensions,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Pressable
 } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
 import { X, Plus, Minus } from 'phosphor-react-native';
 import { Category, GroceryItem } from '../types';
 

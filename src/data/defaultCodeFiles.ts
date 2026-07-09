@@ -377,9 +377,9 @@ import {
   Animated,
   Dimensions,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Pressable
 } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
 import { X, MagnifyingGlass } from 'phosphor-react-native';
 import { Category, GroceryItem } from '../types';
 
@@ -1002,9 +1002,9 @@ import {
   Animated,
   Dimensions,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Pressable
 } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
 import { X, Plus, Minus } from 'phosphor-react-native';
 import { Category, GroceryItem } from '../types';
 
@@ -7918,9 +7918,9 @@ import {
   Platform,
   KeyboardAvoidingView,
   Switch,
-  Modal
+  Modal,
+  Pressable
 } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
 import { X, MagnifyingGlass, CalendarBlank } from 'phosphor-react-native';
 import { PantryCategory, PantryItem } from '../screens/PantryScreen';
 
